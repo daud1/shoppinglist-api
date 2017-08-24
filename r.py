@@ -1,14 +1,15 @@
 from flask import Flask, render_template, url_for, request, redirect, jsonify
-from forms import LoginForm, SignUpForm, NewListForm
+from forms import LoginForm, SignUpForm, NewListForm,NewItemForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
             ######################### initialisation ##########################
 app = Flask('__name__')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456@localhost:5432/db_three'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456@localhost:5432/db_four'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.config['SECRET_KEY'] = 'not_really_secret'
+app.config['WTF_CSRF_ENABLED'] = False
 
 
             ####################### LOGIN & LOGOUT ############################
@@ -19,6 +20,40 @@ login_manager.login_view = 'index'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+@app.route('/auth/login', methods=['POST'])
+def login():
+    form = LoginForm()
+    usr = User.query.filter_by(email=str(request.form['email'])).all()
+    if usr:
+        if usr.password == form.password.data:
+            login_user(usr)
+            response = jsonify({'MSG':'Login Successful'})
+            response.status_code = 200
+        else:
+            response = jsonify({'ERR':'Incorrect Password'})
+            response.status_code = 401
+    else:
+        response = jsonify({'ERR': 'User does not exist'})
+        response.status_code = 404
+    return response
+
+@app.route('/auth/register', methods=['POST'])
+def register():  
+    form = SignUpForm()
+    if form.validate_on_submit():
+        usr = User(str(request.form['email']), str(request.form['password']))
+        if usr:
+            db.session.add(usr)
+            db.session.commit()
+            response = jsonify({'MSG':'Success'})
+            response.status_code = 200
+        else:
+            response = jsonify({'ERR':'User object wasnt created.'})
+            response.status_code = 400
+    else:
+        response = jsonify({'ERR': form.errors})
+        response.status_code = 400
+    return response
 
             ####################### MODELS ####################################
 class User(db.Model, UserMixin):
@@ -33,7 +68,6 @@ class User(db.Model, UserMixin):
         self.email = email
         self.password = password
 
-
 class ShoppingList(db.Model):
     """This class represents the shopping_list table"""
     __tablename__ = 'shopping_list'
@@ -43,50 +77,37 @@ class ShoppingList(db.Model):
 
     def __init__(self, list_name):
         self.list_name = list_name
+    
+    @property 
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return { 'list_name': self.list_name }
 
 class Item(db.Model):
     """This class represents the item table"""
     __tablename__ = 'items'
-    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(32))
     quantity = db.Column(db.Integer)
-    list_name = db.Column(db.String(64), db.ForeignKey('shopping_list.list_name'))
+    list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'))#change to id
 
     def __init__(self, item_name, list_name, quantity=1):
         self.item_name = item_name
         self.list_name = list_name
         self.quantity = quantity
+    
+    @property 
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return { 'item_name': self.list_name, 'list_id': self.list_id }
+
 
             ###################### views and routing functions##################
-
-###crud lists###
-@app.route('/shop/login')
-@app.route('/index', methods=['GET/', 'POST'])
-def index():
-    form = LoginForm()
-    if request.method =='POST':
-        usr = User.query.filter_by(email=str(request.form['email'])).first()
-        if usr:
-            if usr.password == form.password.data:
-                login_user(usr)
-                return redirect(url_for('view_all_lists'))
-    return render_template('index', form=form)
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = SignUpForm()
-    if request.method == 'POST' and form.validate_on_submit:
-        usr = User(str(form.email.data), str(form.data.password))
-        db.session.add(usr)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('register.html', form=form)
-
 @app.route('/shoppinglist', methods=['GET'])
 def view_all_lists():
     all_sh_lists = ShoppingList.query.all()
-    if all_sh_lists:
-        response = jsonify(all_sh_lists)
+    if all_sh_lists is not None:
+        response = jsonify([obj.serialize for obj in all_sh_lists])
         response.status_code = 200
     else:
         response = jsonify({'ERR':'No lists returned.'})
@@ -121,28 +142,43 @@ def delete_list(id):
     return response
 
 @app.route('/shoppinglist/<id>', methods=['GET'])
-def view_single_list(id):
-    single_list = ShoppingList.query.filter_by(id=id)
-    if single_list is not None:
-        response = jsonify(single_list)
-        response = 200
+def view_list(id):
+    list_items = Item.query.filter_by(id=id).all()
+    if list_items is not None:
+        response = jsonify(list_items)
+        response.status_code = 200
     else:
-        response = jsonify({'ERR':'List not Found'})
-        response = 404
+        response = jsonify({'ERR':'List items not Found'})
+        response.status_code = 400
     return response
 
-# @app.route('/add_item', methods=['POST'])
-# def add_item():    
-#     return redirect(url_for('view_list', name=list_name))
+@app.route('/shoppinglists/<id>/item/', methods=['POST'])
+def add_item(id):
+    form = NewItemForm()
+    new_item = Item(request.form['item_name'], id)
+    if new_item is not None:
+        db.session.add(new_item)
+        db.session.commit()
+        response = jsonify({'MSG': 'Item added to list'})
+        response.status_code = 201
+    else:
+        response.jsonify({'ERR':'Item wasnt added to list'})
+        response.status_code = 400
+    return response
 
-# @app.route('/del_item')
-# def del_item():
-#     return redirect(url_for('view_list', name=list_name))
+@app.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
+def delete_item(id, item_id):
+    del_item = Item.query.filter_by(id=id, item_id=item_id).one()
+    if del_item is not None:
+        db.session.delete(del_item)
+        db.session.commit()
+        response = jsonify({'MSG':'Success'})
+        response.status_code = 204
+    else:
+        response = jsonify({'ERR':'Requested item was not found'})
+        response.status_code = 404
+    return response 
 
-# @app.route('/view_list/<string:name>')
-# def view_list(name):
-#     sh_list = Item.item_name.query.filter_by(list_name=name)
-#     return render_template('view_list.html', list=sh_list)
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 db.create_all()
 if __name__ == '__main__':
