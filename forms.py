@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, EqualTo, Email
-from wtforms import TextField, PasswordField, IntegerField
+from wtforms import TextField, PasswordField, IntegerField, StringField
 
 class LoginForm(FlaskForm):
     email = TextField('Email Address', validators=[DataRequired(message='Please enter an email address')])
@@ -12,7 +12,7 @@ class SignUpForm(FlaskForm):
     confirm = PasswordField('Confirm Password', validators=[DataRequired(message="Type your password again.")])
 
 class NewListForm(FlaskForm):
-    list_name = TextField('Title', validators=[DataRequired(message='Enter a title for your new shopping list')])
+    list_name = StringField('Title', validators=[DataRequired(message='Enter a title for your shopping list')])
 
 class NewItemForm(FlaskForm):
     item_name = TextField('Item Name', validators=[DataRequired('Enter a name for this item')])

@@ -20,12 +20,15 @@ login_manager.login_view = 'index'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 @app.route('/auth/login', methods=['POST'])
 def login():
     form = LoginForm()
-    usr = User.query.filter_by(email=str(request.form['email'])).all()
+    usr = User.query.filter_by(email=str(request.form['email'])).first()
+    print usr
+    usr_temp = usr.serialize
     if usr:
-        if usr.password == form.password.data:
+        if str(usr_temp['password']) == request.form['password']:
             login_user(usr)
             response = jsonify({'MSG':'Login Successful'})
             response.status_code = 200
@@ -55,7 +58,7 @@ def register():
         response.status_code = 400
     return response
 
-            ####################### MODELS ####################################
+####################### MODELS ####################################
 class User(db.Model, UserMixin):
     """This class represents the user table"""
     __tablename__ = 'user'
@@ -67,6 +70,11 @@ class User(db.Model, UserMixin):
     def __init__(self, email, password):
         self.email = email
         self.password = password
+    
+    @property 
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return { 'email': self.email, 'password': self.password }
 
 class ShoppingList(db.Model):
     """This class represents the shopping_list table"""
@@ -102,8 +110,9 @@ class Item(db.Model):
         return { 'item_name': self.list_name, 'list_id': self.list_id }
 
 
-            ###################### views and routing functions##################
-@app.route('/shoppinglist', methods=['GET'])
+
+###################### views and routing functions##################
+@app.route('/shoppinglists', methods=['GET'])
 def view_all_lists():
     all_sh_lists = ShoppingList.query.all()
     if all_sh_lists is not None:
@@ -114,7 +123,7 @@ def view_all_lists():
         response.status_code = 404
     return response
 
-@app.route('/shoppinglist', methods=['POST'])
+@app.route('/shoppinglists', methods=['POST'])
 def create_list():
     form = NewListForm()   
     new_list = ShoppingList(request.form['list_name'])
@@ -128,9 +137,26 @@ def create_list():
         response.status_code = 400
     return response
 
+@app.route('/shoppinglists/<id>', methods=['PUT'])
+def edit_list(id):
+    form = NewListForm()
+    ed_list = ShoppingList.query.filter_by(id=id).first()
+    if ed_list is not None:
+        if form.validate_on_submit():
+            ed_list.list_name = form.list_name.data
+            db.session.commit()
+            response = jsonify({'MSG':'Success'})
+            response.status_code = 201
+        else:
+            response = jsonify({'ERR': form.errors})
+    else:
+        response = jsonify({'ERR':'failed to find list'})
+        response.status_code = 404
+    return response
+
 @app.route('/shoppinglist/<id>', methods = ['DELETE'])
 def delete_list(id):
-    del_list = ShoppingList.query.filter_by(id=id).one()
+    del_list = ShoppingList.query.filter_by(id=id).first()
     if del_list is not None:
         db.session.delete(del_list)
         db.session.commit()
@@ -164,6 +190,28 @@ def add_item(id):
     else:
         response.jsonify({'ERR':'Item wasnt added to list'})
         response.status_code = 400
+    return response
+
+@app.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
+def edit_item(id, item_id):
+    form = NewItemForm()
+    ed_item = Item.query.filter_by(list_id=id, item_id=item_id).first()
+    if form.validate_on_submit():
+        if form.item_name.data:
+            ed_item.item_name = form.item_name.data
+
+        if form.quantity.data:
+            ed_item.quantity = form.quantity.data
+
+        if form.quantity.data and form.item_name.data:
+            ed_item.item_name = form.item_name.data
+            ed_item.quantity = form.quantity.data
+        
+        response = jsonify({'MSG':'Edited item.'})
+        response.status_code = 200
+    else:
+        response = jsonify({'MSG':form.errors})
+        response.status_code = 404
     return response
 
 @app.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
