@@ -99,17 +99,15 @@ class Item(db.Model):
     quantity = db.Column(db.Integer)
     list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'))#change to id
 
-    def __init__(self, item_name, list_name, quantity=1):
+    def __init__(self, item_name, list_id, quantity=1):
         self.item_name = item_name
-        self.list_name = list_name
+        self.list_id = list_id
         self.quantity = quantity
     
     @property 
     def serialize(self):
         """Return object data in easily serializeable format"""
         return { 'item_name': self.list_name, 'list_id': self.list_id }
-
-
 
 ###################### views and routing functions##################
 @app.route('/shoppinglists', methods=['GET'])
@@ -126,7 +124,7 @@ def view_all_lists():
 @app.route('/shoppinglists', methods=['POST'])
 def create_list():
     form = NewListForm()   
-    new_list = ShoppingList(request.form['list_name'])
+    new_list = ShoppingList(form.list_name.data)
     if new_list is not None:
         db.session.add(new_list)
         db.session.commit()
@@ -154,7 +152,7 @@ def edit_list(id):
         response.status_code = 404
     return response
 
-@app.route('/shoppinglist/<id>', methods = ['DELETE'])
+@app.route('/shoppinglists/<id>', methods = ['DELETE'])
 def delete_list(id):
     del_list = ShoppingList.query.filter_by(id=id).first()
     if del_list is not None:
@@ -167,9 +165,9 @@ def delete_list(id):
         response.status_code = 404
     return response
 
-@app.route('/shoppinglist/<id>', methods=['GET'])
+@app.route('/shoppinglists/<id>', methods=['GET'])
 def view_list(id):
-    list_items = Item.query.filter_by(id=id).all()
+    list_items = Item.query.filter_by(list_id=id).all()
     if list_items is not None:
         response = jsonify(list_items)
         response.status_code = 200
@@ -181,7 +179,7 @@ def view_list(id):
 @app.route('/shoppinglists/<id>/item/', methods=['POST'])
 def add_item(id):
     form = NewItemForm()
-    new_item = Item(request.form['item_name'], id)
+    new_item = Item(form.item_name.data, id)
     if new_item is not None:
         db.session.add(new_item)
         db.session.commit()
