@@ -1,22 +1,22 @@
+"""Monolithic module for flask shopping list api. includes multiple modules"""
 from flask import Flask, render_template, url_for, request, redirect, jsonify
-from forms import LoginForm, SignUpForm, NewListForm,NewItemForm
+from forms import LoginForm, SignUpForm, NewListForm, NewItemForm
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from itsdangerous import (TimedJSONWebSignatureSerializer
+                           as Serializer, BadSignature, SignatureExpired)
 
-            ######################### initialisation ##########################
+            ######################### INIT ##########################
 app = Flask('__name__')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456@localhost:5432/db_four'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456@localhost:5432/db_five'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.config['SECRET_KEY'] = 'not_really_secret'
 app.config['WTF_CSRF_ENABLED'] = False
-
-
             ####################### LOGIN & LOGOUT ############################
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -71,6 +71,22 @@ class User(db.Model, UserMixin):
         self.email = email
         self.password = password
     
+    def generate_auth_token(self, expiration = 600):
+        s = Serializer(app.config['SECRET_KEY'], expires_in = expiration)
+        return s.dumps({ 'id': self.id })
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None # valid token, but expired
+        except BadSignature:
+            return None # invalid token
+        user = User.query.get(data['id'])
+        return user
+    
     @property 
     def serialize(self):
         """Return object data in easily serializeable format"""
@@ -81,7 +97,7 @@ class ShoppingList(db.Model):
     __tablename__ = 'shopping_list'
     id = db.Column(db.Integer, primary_key=True)
     list_name = db.Column(db.String(64), unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
     def __init__(self, list_name):
         self.list_name = list_name
@@ -97,7 +113,7 @@ class Item(db.Model):
     item_id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(32))
     quantity = db.Column(db.Integer)
-    list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'))#change to id
+    list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id', ondelete='CASCADE'), nullable=False)
 
     def __init__(self, item_name, list_id, quantity=1):
         self.item_name = item_name
@@ -109,7 +125,7 @@ class Item(db.Model):
         """Return object data in easily serializeable format"""
         return { 'item_name': self.list_name, 'list_id': self.list_id }
 
-###################### views and routing functions##################
+###################### VIEWS ##################
 @app.route('/shoppinglists', methods=['GET'])
 def view_all_lists():
     all_sh_lists = ShoppingList.query.all()
@@ -125,7 +141,7 @@ def view_all_lists():
 def create_list():
     form = NewListForm()   
     new_list = ShoppingList(form.list_name.data)
-    if new_list is not None:
+    if new_list is not None and form.validate_on_submit():
         db.session.add(new_list)
         db.session.commit()
         response = jsonify({'MSG': 'Success'})
@@ -150,13 +166,20 @@ def edit_list(id):
     else:
         response = jsonify({'ERR':'failed to find list'})
         response.status_code = 404
+    
     return response
 
 @app.route('/shoppinglists/<id>', methods = ['DELETE'])
 def delete_list(id):
     del_list = ShoppingList.query.filter_by(id=id).first()
+    del_items = Item.query.filter_by(list_id=id).all()
     if del_list is not None:
         db.session.delete(del_list)
+
+        if del_items is not None:
+            for item in del_items:
+                db.session.delete(del_items)
+
         db.session.commit()
         response = jsonify({'MSG':'Success'})
         response.status_code = 204
@@ -192,7 +215,7 @@ def add_item(id):
 
 @app.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
 def edit_item(id, item_id):
-    form = NewItemForm()
+    form = NewItemForm() 
     ed_item = Item.query.filter_by(list_id=id, item_id=item_id).first()
     if form.validate_on_submit():
         if form.item_name.data:
