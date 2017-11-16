@@ -7,15 +7,17 @@ from flask_login import LoginManager, UserMixin, login_user
 from flask_login import logout_user, current_user, login_required
 from itsdangerous import (TimedJSONWebSignatureSerializer
                            as Serializer, BadSignature, SignatureExpired)
+from flask_bcrypt import Bcrypt
 
 ######################### INIT ##########################
 
 app = Flask('__name__')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123456@localhost:5432/db_five'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.config['SECRET_KEY'] = 'not_really_secret'
 app.config['WTF_CSRF_ENABLED'] = False
+BCRYPT_LOG_ROUNDS = 12
 ####################### MODELS ####################################
 
 class User(db.Model, UserMixin):
@@ -23,22 +25,18 @@ class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True)
-    password = db.Column(db.String(16))
+    password = db.Column(db.String(255))
     token = db.Column(db.String(255), nullable=True)
     lists = db.relationship('ShoppingList', backref='user', lazy='dynamic')
 
     def __init__(self, email, password):
         self.email = email
-        self.password = password
+        self.password = Bcrypt().generate_password_hash(password, BCRYPT_LOG_ROUNDS).decode()
     
     def generate_auth_token(self, expiration = 10800):
         s = Serializer(app.config['SECRET_KEY'], expires_in = expiration)
         return s.dumps({ 'id': self.id })
 
-    # def get_id(self):
-    #"""implemented by the UserMixin"""
-    #     return u'%r' % self.id
-    
     def __repr__(self):
         return '<Email %r>' % self.email
 
@@ -98,6 +96,7 @@ class Item(db.Model):
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -106,7 +105,7 @@ def load_user(user_id):
 def register():
     form = SignUpForm()
     if form.validate_on_submit():
-        #check that the email us unique
+        #check that the email is unique
         usr = User(str(request.form['email']), str(request.form['password']))
         if usr:
             db.session.add(usr)
@@ -127,13 +126,12 @@ def login():
     usr = User.query.filter_by(email=str(request.form['email'])).first()
     usr_temp = usr.serialize
     if usr:
-        if str(usr_temp['password']) == request.form['password']:
-            #generate token here and bind to user.. or after logging in user.. not sure
-            tkn = usr.generate_auth_token()
+        if Bcrypt().check_password_hash(usr_temp['password'], str(request.form['password'])):
+            tkn = usr.generate_auth_token().decode()
             usr.token = tkn
             db.session.commit()
             login_user(usr)
-            response = jsonify({'MSG':'Login Successful'})
+            response = jsonify({'MSG':'Login Successful', 'token': tkn})
             response.status_code = 200
         else:
             response = jsonify({'ERR':'Incorrect Password'})
