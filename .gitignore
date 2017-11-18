@@ -1,2 +1,4 @@
 *.pyc
 sndbx.py
+test_sndbx.py
+.cache/v/cache/lastfailed

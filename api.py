@@ -1,5 +1,5 @@
 """Monolithic module for flask shopping list api. includes multiple modules"""
-from flask import Flask
+from flask_api import FlaskAPI
 from flask import render_template, url_for, request, redirect, jsonify
 from forms import LoginForm, SignUpForm, NewListForm, NewItemForm
 from flask_sqlalchemy import SQLAlchemy
@@ -11,7 +11,7 @@ from flask_bcrypt import Bcrypt
 
 ######################### INIT ##########################
 
-app = Flask('__name__')
+app = FlaskAPI('__name__')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -93,11 +93,11 @@ class Item(db.Model):
 
 ####################### LOGIN & LOGOUT ############################
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+LOGIN_MANAGER = LoginManager()
+LOGIN_MANAGER.init_app(app)
+LOGIN_MANAGER.login_view = 'login'
 
-@login_manager.user_loader
+@LOGIN_MANAGER.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
@@ -277,7 +277,7 @@ def edit_item(id, item_id):
 @app.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
 @login_required
 def delete_item(id, item_id):
-    del_item = Item.query.filter_by(id=id, item_id=item_id).one()
+    del_item = Item.query.filter_by(list_id=id, item_id=item_id).one()
     if del_item is not None:
         db.session.delete(del_item)
         db.session.commit()
