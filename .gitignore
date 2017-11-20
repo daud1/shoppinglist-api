@@ -1,5 +1,9 @@
 *.pyc
 sndbx.py
 test_sndbx.py
-.cache/v/cache/lastfailed
+.cache/
+.vscode/
+__pycache__
 venv/
+.coveragerc
+.coverage
