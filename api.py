@@ -15,7 +15,7 @@ from forms import LoginForm, NewItemForm, NewListForm, SignUpForm
 ######################### INIT ##########################
 
 APP = FlaskAPI('__name__')
-APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/DB_five'
+APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 DB = SQLAlchemy(APP)
 APP.config['SECRET_KEY'] = 'not_really_secret'
@@ -40,6 +40,7 @@ class User(DB.Model, UserMixin):
             password, BCRYPT_LOG_ROUNDS).decode()
 
     def generate_auth_token(self, expiration=10800):
+        """method to generate an authorisation token for user on successful login"""
         s = Serializer(APP.config['SECRET_KEY'], expires_in=expiration)
         return s.dumps({'id': self.id})
 
@@ -48,6 +49,7 @@ class User(DB.Model, UserMixin):
 
     @staticmethod
     def verify_auth_token(token):
+        """method to verify authorisation token"""
         s = Serializer(APP.config['SECRET_KEY'])
         try:
             data = s.loads(token)
@@ -83,6 +85,7 @@ class ShoppingList(DB.Model):
 
     @staticmethod
     def search(q, page=1):
+        """This method implements search and pagination."""
         all_lists = ShoppingList.query.filter_by(current_user.id)
         count = all_lists.count()
         limit = 10
@@ -95,11 +98,12 @@ class ShoppingList(DB.Model):
             count = all_lists.count()
         try:
             page = int(page)
-        except Exception:
+        except ValueError:
             page = None
 
         if page is not None:
-            return {'lists': all_lists.paginate(page, limit, False).items, 'number_of_pages': math.ceil(count / limit)}
+            return {'lists': all_lists.paginate(page, limit, False).items,
+                    'number_of_pages': math.ceil(count / limit)}
 
         return {'lists': all_lists.all(), 'number_of_pages': math.ceil(count / limit)}
 
@@ -125,6 +129,7 @@ class Item(DB.Model):
 
     @staticmethod
     def search(q, page=1):
+        """This method implements search and pagination."""
         all_items = ShoppingList.query.filter_by(current_user.id)
         count = all_items.count()
         limit = 10
@@ -137,11 +142,12 @@ class Item(DB.Model):
             count = all_items.count()
         try:
             page = int(page)
-        except Exception:
+        except ValueError:
             page = None
 
         if page is not None:
-            return {'items': all_items.paginate(page, limit, False).items, 'number_of_pages': math.ceil(count / limit)}
+            return {'items': all_items.paginate(page, limit, False).items,
+                    'number_of_pages': math.ceil(count / limit)}
         return {'items': all_items.all(), 'number_of_pages': math.ceil(count / limit)}
 
 ####################### LOGIN & LOGOUT ############################
@@ -154,11 +160,13 @@ LOGIN_MANAGER.login_view = 'login'
 
 @LOGIN_MANAGER.user_loader
 def load_user(user_id):
+    """Returns User object given User's ID"""
     return User.query.get(int(user_id))
 
 
 @APP.route('/auth/register', methods=['POST'])
 def register():
+    """This method registers a new User using the email and password"""
     form = SignUpForm()
     if form.validate_on_submit():
         usr = User(str(request.form['email']), str(request.form['password']))
@@ -183,7 +191,7 @@ def register():
 
 @APP.route('/auth/login', methods=['POST'])
 def login():
-    form = LoginForm()
+    """This method logs in a registered User and assigns them a Session Token."""
     usr = User.query.filter_by(email=str(request.form['email'])).first()
     usr_temp = usr.serialize
     if usr:
@@ -206,6 +214,7 @@ def login():
 @APP.route('/auth/logout', methods=['POST'])
 @login_required
 def logout():
+    """This method is used to log out a logged in User."""
     if current_user is not None:
         current_user.token = None
         DB.session.commit()
@@ -220,6 +229,7 @@ def logout():
 @APP.route('/shoppinglists', methods=['GET'])
 @login_required
 def view_all_lists():
+    """This function displays all of a User's ShoppingLists."""
     all_sh_lists = ShoppingList.search(
         request.args.get("q"), request.args.get("page"))
     if all_sh_lists is not None:
@@ -234,6 +244,7 @@ def view_all_lists():
 @APP.route('/shoppinglists', methods=['POST'])
 @login_required
 def create_list():
+    """This function given creates a ShoppingList object with the title as the string passed."""
     form = NewListForm()
     new_list = ShoppingList(form.list_name.data, current_user.get_id())
     if new_list is not None and form.validate_on_submit():
@@ -250,6 +261,7 @@ def create_list():
 @APP.route('/shoppinglists/<id>', methods=['PUT'])
 @login_required
 def edit_list(id):
+    """Edits given ShoppingList title to string passed in."""
     form = NewListForm()
     ed_list = ShoppingList.query.filter_by(id=id).first()
     if ed_list is not None:
@@ -270,6 +282,7 @@ def edit_list(id):
 @APP.route('/shoppinglists/<id>', methods=['DELETE'])
 @login_required
 def delete_list(id):
+    """Deletes a given ShoppingList."""
     del_list = ShoppingList.query.filter_by(id=id).first()
     del_items = Item.query.filter_by(list_id=id).all()
     if del_list is not None:
@@ -277,7 +290,7 @@ def delete_list(id):
 
         if del_items is not None:
             for item in del_items:
-                DB.session.delete(del_items)
+                DB.session.delete(item)
 
         DB.session.commit()
         response = jsonify({'MSG': 'Success'})
@@ -291,7 +304,12 @@ def delete_list(id):
 @APP.route('/shoppinglists/<id>', methods=['GET'])
 @login_required
 def view_list(id):
-    list_items = Item.search(request.args.get("q"), request.args.get("page"))
+    """Displays all the items belonging to a given ShoppingList."""
+    if request.args.get('q') is not None:
+        list_items = Item.search(
+            request.args.get("q"), request.args.get("page"))
+    else:
+        list_items = Item.query.filter_by(current_user.id, list_id=id).all()
     if list_items is not None:
         response = jsonify(list_items)
         response.status_code = 200
@@ -304,6 +322,7 @@ def view_list(id):
 @APP.route('/shoppinglists/<id>/items/', methods=['POST'])
 @login_required
 def add_item(id):
+    """Adds an item to a given ShoppingList."""
     form = NewItemForm()
     if form.validate_on_submit():
         if form.quantity.data is not None:
@@ -324,6 +343,7 @@ def add_item(id):
 @APP.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
 @login_required
 def edit_item(id, item_id):
+    """Edits an item on a given ShoppingList to the string passed."""
     form = NewItemForm()
     ed_item = Item.query.filter_by(list_id=id, item_id=item_id).first()
     if form.validate_on_submit():
@@ -348,6 +368,7 @@ def edit_item(id, item_id):
 @APP.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
 @login_required
 def delete_item(id, item_id):
+    """Deletes item from given ShoppingList."""
     del_item = Item.query.filter_by(list_id=id, item_id=item_id).one()
     if del_item is not None:
         DB.session.delete(del_item)
@@ -360,7 +381,7 @@ def delete_item(id, item_id):
     return response
 
 
-# -----------------------------------------------------------------------------------------------------------------------------------------------
+#  --------------------------------------------------------------------------------------
 DB.create_all()
 if __name__ == '__main__':
     APP.run(debug=True)
