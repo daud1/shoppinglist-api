@@ -2,7 +2,7 @@
 import unittest
 import json
 import views
-from __init__ import APP
+from __init__ import APP, DB
 
 
 class APIAuthTestCases(unittest.TestCase):
@@ -19,10 +19,10 @@ class APIAuthTestCases(unittest.TestCase):
         self.t_list = {'list_name': 'testList'}
         self.t_item = {'item_name': 'testItem'}
 
-        # APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/test_db'
-        # APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        # with APP.app_context():
-        #     DB.create_all()
+        APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/test_db'
+        APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        with APP.app_context():
+            DB.create_all()
 
     def test_user_register(self):
         """Test API can register a new user"""
@@ -202,8 +202,8 @@ class APIAuthTestCases(unittest.TestCase):
                               })
             self.assertEqual(res4.status_code, 200)
 
-    # def tearDown(self):
-    #     """teardown all initialized variables."""
-    #     with APP.app_context():
-    #         DB.session.remove()
-    #         DB.drop_all()
+    def tearDown(self):
+        """teardown all initialized variables."""
+        with APP.app_context():
+            DB.session.remove()
+            DB.drop_all()
