@@ -2,7 +2,7 @@
 import unittest
 import json
 import views
-from __init__ import APP, DB
+from __init__ import APP
 
 
 class APIAuthTestCases(unittest.TestCase):
