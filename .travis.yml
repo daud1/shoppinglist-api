@@ -15,7 +15,7 @@ before_script:
   - psql -c 'create database test_db;' -U postgres
 
 script:
-  - pytest test_api.py
+  - pytest --cov=. test_api.py
 
 after_success:
   - coveralls
