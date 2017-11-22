@@ -1,16 +1,21 @@
 language: python
+
 python:
   - "3.6.3"
+  
 cache: pip
+
 install: 
   - pip install -r requirements.txt
-script:
-  - pytest test_api.py
+
 services:
   - postgresql
 
 before_script:
-  - psql -c 'create database test_db1;' -U postgres
+  - psql -c 'create database testdb1;' -U postgres
+
+script:
+  - pytest test_api.py
 
 after_success:
   - coveralls
