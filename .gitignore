@@ -6,4 +6,3 @@ test_sndbx.py
 __pycache__
 venv/
 .coveragerc
-.coverage
