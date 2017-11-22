@@ -1,0 +1,8 @@
+venv/
+*.pyc
+.vscode/
+.cache/
+__pycache__/
+.coverage
+.coveragerc
+
