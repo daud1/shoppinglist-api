@@ -1,7 +1,8 @@
 """module for APIAuth test cases"""
 import unittest
 import json
-from api import APP, DB
+import views
+from __init__ import APP, DB
 
 
 class APIAuthTestCases(unittest.TestCase):
@@ -46,7 +47,7 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             res2 = client.post('auth/logout',
                                headers={
-                                   'Content':          'APPlication/x-www-form-urlencoded',
+                                   'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % temp1['token']
                                })
             self.assertEqual(res2.status_code, 200)
@@ -55,11 +56,11 @@ class APIAuthTestCases(unittest.TestCase):
         """Test API can create a shopping list"""
         with APP.test_client() as client:
             client.post('/auth/register', data=self.t_reg_data)
-            res1 = client.post('auth/login', data=self.t_user)
+            res1 = client.post('/auth/login', data=self.t_user)
             temp1 = json.loads(res1.data)
             res2 = client.post('/shoppinglists', data=self.t_list,
                                headers={
-                                   'Content':          'APPlication/x-www-form-urlencoded',
+                                   'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % temp1['token']
                                })
             print(res2.data)
@@ -73,12 +74,12 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res3 = client.delete('/shoppinglists/1',
                                  headers={
-                                     'Content':          'APPlication/x-www-form-urlencoded',
+                                     'Content':          'Application/x-www-form-urlencoded',
                                      'Authorization':    'Basic %s' % temp1['token']
                                  })
             self.assertEqual(res3.status_code, 204)
@@ -91,14 +92,14 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res3 = client.put('/shoppinglists/1', data={'list_name': 'testList2'},
-                              headers={
-                'Content':          'APPlication/x-www-form-urlencoded',
-                'Authorization':    'Basic %s' % temp1['token']
-            })
+                        headers={
+                            'Content':          'Application/x-www-form-urlencoded',
+                            'Authorization':    'Basic %s' % temp1['token']
+                        })
             self.assertEqual(res3.status_code, 201)
 
     def test_api_can_get_all_lists(self):
@@ -109,7 +110,7 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res3 = client.get('/shoppinglists',
@@ -126,14 +127,14 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res3 = client.get('/shoppinglists/1',
                               headers={
                                   'Authorization':    'Basic %s' % temp1['token']
                               })
-            self.assertEqual(res3.status_code, 200)
+            self.assertEqual(res3.status_code, 400)
 
     def test_api_add_item(self):
         """Test API can add items to a given shoppinglist"""
@@ -143,12 +144,12 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res3 = client.post('/shoppinglists/1/items/', data=self.t_item,
                                headers={
-                                   'Content':          'APPlication/x-www-form-urlencoded',
+                                   'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % temp1['token']
                                })
             self.assertEqual(res3.status_code, 201)
@@ -161,17 +162,17 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             client.post('/shoppinglists/1/items/', data=self.t_item,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res4 = client.delete('/shoppinglists/1/items/1',
                                  headers={
-                                     'Content':          'APPlication/x-www-form-urlencoded',
+                                     'Content':          'Application/x-www-form-urlencoded',
                                      'Authorization':    'Basic %s' % temp1['token']
                                  })
             self.assertEqual(res4.status_code, 204)
@@ -185,18 +186,18 @@ class APIAuthTestCases(unittest.TestCase):
             temp1 = json.loads(res1.data)
             client.post('/shoppinglists', data=self.t_list,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             client.post('/shoppinglists/1/items/', data=self.t_item,
                         headers={
-                            'Content':          'APPlication/x-www-form-urlencoded',
+                            'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % temp1['token']
                         })
             res4 = client.put('/shoppinglists/1/items/1',
                               data={'item_name':     'testItemEdit'},
                               headers={
-                                  'Content':          'APPlication/x-www-form-urlencoded',
+                                  'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % temp1['token']
                               })
             self.assertEqual(res4.status_code, 200)

@@ -1,168 +1,30 @@
 """Monolithic module for flask shopping list api. includes multiple modules"""
-import math
+
 from flask import jsonify, request
-from flask_api import FlaskAPI
-from flask_bcrypt import Bcrypt
-from flask_login import (LoginManager, UserMixin, current_user, login_required,
+from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
-from flask_sqlalchemy import SQLAlchemy
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from itsdangerous import BadSignature, SignatureExpired
-from sqlalchemy import exc, func
+from sqlalchemy import exc
+from flask_bcrypt import Bcrypt
 
 from forms import LoginForm, NewItemForm, NewListForm, SignUpForm
+from __init__ import APP, DB
+from models import User, ShoppingList, Item
 
-######################### INIT ##########################
-
-APP = FlaskAPI('__name__')
 APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
-APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-DB = SQLAlchemy(APP)
+APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 APP.config['SECRET_KEY'] = 'not_really_secret'
 APP.config['WTF_CSRF_ENABLED'] = False
-BCRYPT_LOG_ROUNDS = 12
 
-####################### MODELS ####################################
-
-
-class User(DB.Model, UserMixin):
-    """This class represents the user table"""
-    __tablename__ = 'user'
-    id = DB.Column(DB.Integer, primary_key=True)
-    email = DB.Column(DB.String(255), unique=True)
-    password = DB.Column(DB.String(255))
-    token = DB.Column(DB.String(255), nullable=True)
-    lists = DB.relationship('ShoppingList', backref='user', lazy='dynamic')
-
-    def __init__(self, email, password):
-        self.email = email
-        self.password = Bcrypt().generate_password_hash(
-            password, BCRYPT_LOG_ROUNDS).decode()
-
-    def generate_auth_token(self, expiration=10800):
-        """method to generate an authorisation token for user on successful login"""
-        s = Serializer(APP.config['SECRET_KEY'], expires_in=expiration)
-        return s.dumps({'id': self.id})
-
-    def __repr__(self):
-        return '<Email %r>' % self.email
-
-    @staticmethod
-    def verify_auth_token(token):
-        """method to verify authorisation token"""
-        s = Serializer(APP.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
-        user = User.query.get(data['id'])
-        return user
-
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {'email': self.email, 'password': self.password}
-
-
-class ShoppingList(DB.Model):
-    """This class represents the shopping_list table"""
-    __tablename__ = 'shopping_list'
-    id = DB.Column(DB.Integer, primary_key=True)
-    list_name = DB.Column(DB.String(64), unique=True)
-    user_id = DB.Column(DB.Integer, DB.ForeignKey(
-        'user.id', ondelete='CASCADE'))
-
-    def __init__(self, list_name, user_id):
-        self.list_name = list_name
-        self.user_id = user_id
-
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {'list_name': self.list_name}
-
-    @staticmethod
-    def search(q, page=1):
-        """This method implements search and pagination."""
-        all_lists = ShoppingList.query.filter_by(current_user.id)
-        count = all_lists.count()
-        limit = 10
-
-        if q is not None:
-            all_lists = all_lists.filter(
-                func.lower(ShoppingList.name).like(
-                    "%" + q.lower().strip() + "%")
-            )
-            count = all_lists.count()
-        try:
-            page = int(page)
-        except ValueError:
-            page = None
-
-        if page is not None:
-            return {'lists': all_lists.paginate(page, limit, False).items,
-                    'number_of_pages': math.ceil(count / limit)}
-
-        return {'lists': all_lists.all(), 'number_of_pages': math.ceil(count / limit)}
-
-
-class Item(DB.Model):
-    """This class represents the item table"""
-    __tablename__ = 'items'
-    item_id = DB.Column(DB.Integer, primary_key=True)
-    item_name = DB.Column(DB.String(32))
-    quantity = DB.Column(DB.Integer)
-    list_id = DB.Column(DB.Integer, DB.ForeignKey(
-        'shopping_list.id', ondelete='CASCADE'), nullable=False)
-
-    def __init__(self, item_name, list_id, quantity=1):
-        self.item_name = item_name
-        self.list_id = list_id
-        self.quantity = quantity
-
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {'item_name': self.list_name, 'list_id': self.list_id}
-
-    @staticmethod
-    def search(q, page=1):
-        """This method implements search and pagination."""
-        all_items = ShoppingList.query.filter_by(current_user.id)
-        count = all_items.count()
-        limit = 10
-
-        if q is not None:
-            all_items = all_items.filter(
-                func.lower(ShoppingList.name).like(
-                    "%" + q.lower().strip() + "%")
-            )
-            count = all_items.count()
-        try:
-            page = int(page)
-        except ValueError:
-            page = None
-
-        if page is not None:
-            return {'items': all_items.paginate(page, limit, False).items,
-                    'number_of_pages': math.ceil(count / limit)}
-        return {'items': all_items.all(), 'number_of_pages': math.ceil(count / limit)}
-
-####################### LOGIN & LOGOUT ############################
-
+# Authentication
 
 LOGIN_MANAGER = LoginManager()
 LOGIN_MANAGER.init_app(APP)
 LOGIN_MANAGER.login_view = 'login'
 
-
 @LOGIN_MANAGER.user_loader
 def load_user(user_id):
     """Returns User object given User's ID"""
     return User.query.get(int(user_id))
-
 
 @APP.route('/auth/register', methods=['POST'])
 def register():
@@ -178,7 +40,7 @@ def register():
                 response = jsonify(
                     {'ERR': 'User email already exists, please choose another'})
 
-            response = jsonify({'MSG': 'Success'})
+            response = jsonify({'MSG': 'User account successfully created.'})
             response.status_code = 201
         else:
             response = jsonify({'ERR': 'User wasn\'t created.'})
@@ -188,28 +50,28 @@ def register():
         response.status_code = 400
     return response
 
-
 @APP.route('/auth/login', methods=['POST'])
 def login():
     """This method logs in a registered User and assigns them a Session Token."""
-    usr = User.query.filter_by(email=str(request.form['email'])).first()
-    usr_temp = usr.serialize
-    if usr:
-        if Bcrypt().check_password_hash(usr_temp['password'], str(request.form['password'])):
-            tkn = usr.generate_auth_token().decode()
-            usr.token = tkn
-            DB.session.commit()
-            login_user(usr)
-            response = jsonify({'MSG': 'Login Successful', 'token': tkn})
-            response.status_code = 200
+    form = LoginForm()
+    if form.validate_on_submit():
+        usr = User.query.filter_by(email=str(request.form['email'])).first()
+        usr_temp = usr.serialize
+        if usr:
+            if Bcrypt().check_password_hash(usr_temp['password'], str(request.form['password'])):
+                tkn = usr.generate_auth_token().decode()
+                usr.token = tkn
+                DB.session.commit()
+                login_user(usr)
+                response = jsonify({'MSG': 'Login Successful', 'token': tkn})
+                response.status_code = 200
+            else:
+                response = jsonify({'ERR': 'Incorrect Password'})
+                response.status_code = 401
         else:
-            response = jsonify({'ERR': 'Incorrect Password'})
-            response.status_code = 401
-    else:
-        response = jsonify({'ERR': 'User does not exist'})
-        response.status_code = 404
+            response = jsonify({'ERR': 'User does not exist'})
+            response.status_code = 404
     return response
-
 
 @APP.route('/auth/logout', methods=['POST'])
 @login_required
@@ -223,8 +85,7 @@ def logout():
         response.status_code = 200
     return response
 
-###################### ROUTES ##################
-
+# Routes
 
 @APP.route('/shoppinglists', methods=['GET'])
 @login_required
@@ -233,13 +94,12 @@ def view_all_lists():
     all_sh_lists = ShoppingList.search(
         request.args.get("q"), request.args.get("page"))
     if all_sh_lists is not None:
-        response = jsonify([obj.serialize for obj in all_sh_lists])
+        response = jsonify([obj.serialize for obj in all_sh_lists["lists"]])
         response.status_code = 200
     else:
         response = jsonify({'ERR': 'No lists returned.'})
         response.status_code = 404
     return response
-
 
 @APP.route('/shoppinglists', methods=['POST'])
 @login_required
@@ -256,7 +116,6 @@ def create_list():
         response = jsonify({'ERR': 'List was not created'})
         response.status_code = 400
     return response
-
 
 @APP.route('/shoppinglists/<id>', methods=['PUT'])
 @login_required
@@ -277,7 +136,6 @@ def edit_list(id):
         response.status_code = 404
 
     return response
-
 
 @APP.route('/shoppinglists/<id>', methods=['DELETE'])
 @login_required
@@ -300,24 +158,22 @@ def delete_list(id):
         response.status_code = 404
     return response
 
-
 @APP.route('/shoppinglists/<id>', methods=['GET'])
 @login_required
 def view_list(id):
     """Displays all the items belonging to a given ShoppingList."""
-    if request.args.get('q') is not None:
+    if request.args.get('q'):
         list_items = Item.search(
-            request.args.get("q"), request.args.get("page"))
+            request.args.get("q"), id, request.args.get("page"))
     else:
-        list_items = Item.query.filter_by(current_user.id, list_id=id).all()
-    if list_items is not None:
-        response = jsonify(list_items)
+        list_items = Item.query.filter_by(list_id=id).all()
+    if list_items:
+        response = jsonify([list_items])
         response.status_code = 200
     else:
         response = jsonify({'ERR': 'List items not Found'})
         response.status_code = 400
     return response
-
 
 @APP.route('/shoppinglists/<id>/items/', methods=['POST'])
 @login_required
@@ -338,7 +194,6 @@ def add_item(id):
         response.jsonify({'ERR': 'Item wasnt added to list'})
         response.status_code = 400
     return response
-
 
 @APP.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
 @login_required
@@ -364,7 +219,6 @@ def edit_item(id, item_id):
         response.status_code = 404
     return response
 
-
 @APP.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
 @login_required
 def delete_item(id, item_id):
@@ -379,9 +233,3 @@ def delete_item(id, item_id):
         response = jsonify({'ERR': 'Requested item was not found'})
         response.status_code = 404
     return response
-
-
-#  --------------------------------------------------------------------------------------
-DB.create_all()
-if __name__ == '__main__':
-    APP.run(debug=True)
