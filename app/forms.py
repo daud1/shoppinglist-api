@@ -1,7 +1,19 @@
 """module for shoppinglist-api forms"""
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, EqualTo, Email
+from app.models import User
+from wtforms.validators import DataRequired, EqualTo, Email, ValidationError
 from wtforms import TextField, PasswordField, IntegerField, StringField
+
+
+class ExistingUser(object):
+    """class to validate if a given email exists in the database"""
+
+    def __init__(self, message="Email does not exist"):
+        self.message = message
+
+    def __call__(self, form, field):
+        if not User.query.filter_by(email=field.data).first():
+            raise ValidationError(self.message)
 
 
 class LoginForm(FlaskForm):
@@ -33,3 +45,19 @@ class NewItemForm(FlaskForm):
     item_name = TextField('Item Name', validators=[
         DataRequired('Enter a name for this item')])
     quantity = IntegerField('Quantity')
+
+
+class ResetPasswordForm(FlaskForm):
+    """class to represent the form password reset form. Takes the User's email ID"""
+    email = TextField('Email Address', validators=[
+        DataRequired(message='Enter your email address.'),
+        Email(), ExistingUser(message="Email address not available.")])
+
+
+class ResetPasswordSubmitForm(FlaskForm):
+    """class to represent the password reset form. Takes User's new password."""
+    new_password = PasswordField('Enter New Password',
+                                 validators=[DataRequired(message='Please enter a password.'),
+                                             EqualTo('confirm')])
+    confirm = PasswordField('Confirm Password',
+                            validators=[DataRequired('Please re-enter the password')])

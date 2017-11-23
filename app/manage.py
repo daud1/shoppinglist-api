@@ -1,7 +1,7 @@
 """Module for database migrations"""
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from api import APP, DB
+from control import APP, DB
 
 MIGRATE = Migrate(APP, DB)
 MANAGER = Manager(APP)

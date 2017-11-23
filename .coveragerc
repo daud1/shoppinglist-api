@@ -1,0 +1,7 @@
+[run]
+omit = 
+    */venv/*
+    */test_api.py
+    */manage.py
+    */models.py
+    */control.py

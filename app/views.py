@@ -6,14 +6,9 @@ from flask_login import (LoginManager, current_user, login_required,
 from sqlalchemy import exc
 from flask_bcrypt import Bcrypt
 
-from forms import LoginForm, NewItemForm, NewListForm, SignUpForm
-from __init__ import APP, DB
-from models import User, ShoppingList, Item
-
-APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
-APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-APP.config['SECRET_KEY'] = 'not_really_secret'
-APP.config['WTF_CSRF_ENABLED'] = False
+from app.forms import LoginForm, NewItemForm, NewListForm, SignUpForm, ResetPasswordForm
+from app import APP, DB
+from app.models import User, ShoppingList, Item
 
 # Authentication
 
@@ -83,7 +78,7 @@ def logout():
         logout_user()
         response = jsonify({"success": "You have successfully logged out!"})
         response.status_code = 200
-    return response
+    return response   
 
 # Routes
 

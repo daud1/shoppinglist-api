@@ -1,7 +1,6 @@
 """Database models for User, List and Item tables"""
 import math
 
-from __init__ import APP, DB
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, current_user
 
@@ -9,7 +8,9 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature, SignatureExpired
 from sqlalchemy import func
 
+from app import APP, DB
 BCRYPT_LOG_ROUNDS = 12
+
 
 class User(DB.Model, UserMixin):
     """This class represents the user table"""

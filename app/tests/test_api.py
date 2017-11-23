@@ -1,8 +1,8 @@
 """module for APIAuth test cases"""
 import unittest
 import json
-import views
-from __init__ import APP, DB
+from app import views
+from app import APP, DB
 
 
 class APIAuthTestCases(unittest.TestCase):
