@@ -15,7 +15,7 @@ before_script:
   - psql -c 'create database test_db;' -U postgres
 
 script:
-  - py.test --cov=. test_api.py --cov-config .coveragerc
+  - py.test --cov=. app/tests/test_api.py --cov-config .coveragerc
 
 after_success:
   - coveralls
