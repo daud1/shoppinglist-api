@@ -19,7 +19,7 @@ class ExistingUser(object):
 class LoginForm(FlaskForm):
     """class to represent the login form"""
     email = TextField('Email Address', validators=[
-        DataRequired(message='Please enter an email address')])
+        DataRequired(message='Please enter an email address'), Email()])
     password = PasswordField('Enter Password', validators=[
         DataRequired('Please enter your password')])
 
@@ -47,14 +47,14 @@ class NewItemForm(FlaskForm):
     quantity = IntegerField('Quantity')
 
 
-class ResetPasswordForm(FlaskForm):
+class ForgotPasswordForm(FlaskForm):
     """class to represent the form password reset form. Takes the User's email ID"""
     email = TextField('Email Address', validators=[
         DataRequired(message='Enter your email address.'),
-        Email(), ExistingUser(message="Email address not available.")])
+        Email(), ExistingUser(message="User does not exist")])
 
 
-class ResetPasswordSubmitForm(FlaskForm):
+class ResetPasswordForm(FlaskForm):
     """class to represent the password reset form. Takes User's new password."""
     new_password = PasswordField('Enter New Password',
                                  validators=[DataRequired(message='Please enter a password.'),

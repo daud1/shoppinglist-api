@@ -1,15 +1,14 @@
 """Database models for User, List and Item tables"""
 import math
 
-from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, current_user
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature, SignatureExpired
 from sqlalchemy import func
 
-from app import APP, DB
-BCRYPT_LOG_ROUNDS = 12
+from app import APP, DB, BCRPT, BCRYPT_LOG_ROUNDS
+
 
 
 class User(DB.Model, UserMixin):
@@ -23,13 +22,13 @@ class User(DB.Model, UserMixin):
 
     def __init__(self, email, password):
         self.email = email
-        self.password = Bcrypt().generate_password_hash(
+        self.password = BCRPT.generate_password_hash(
             password, BCRYPT_LOG_ROUNDS).decode()
 
     def generate_auth_token(self, expiration=10800):
         """method to generate an authorisation token for user on successful login"""
-        s = Serializer(APP.config['SECRET_KEY'], expires_in=expiration)
-        return s.dumps({'id': self.id})
+        ser = Serializer(APP.config['SECRET_KEY'], expires_in=expiration)
+        return ser.dumps({'id': self.id})
 
     def __repr__(self):
         return '<Email %r>' % self.email
@@ -103,7 +102,7 @@ class Item(DB.Model):
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
-        return {'item_name': self.list_name, 'list_id': self.list_id}
+        return {'item_name': self.item_name, 'list_id': self.list_id}
 
     @staticmethod
     def search(que, id, page=1):
