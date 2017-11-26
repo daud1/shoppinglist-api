@@ -3,8 +3,7 @@ import json
 import unittest
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app import APP, views
-from flask_sqlalchemy import SQLAlchemy
+from app import APP, DB, views
 
 USER_DATA = {'email': 'test@domain.com', 'password': 'test123'}
 F_USER_DATA = {'email': 'test@domain.com', 'password': 'test12'}
@@ -56,7 +55,6 @@ class APIAuthTestCases(unittest.TestCase):
 
         APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/test_db'
         APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        DB = SQLAlchemy(APP)
         with APP.app_context():
             DB.create_all()
 
