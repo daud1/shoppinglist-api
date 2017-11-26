@@ -3,7 +3,7 @@ import json
 import unittest
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app import APP, DB, views
+from app import APP, DB
 
 USER_DATA = {'email': 'test@domain.com', 'password': 'test123'}
 F_USER_DATA = {'email': 'test@domain.com', 'password': 'test12'}
