@@ -120,5 +120,3 @@ class Item(DB.Model):
             return {'items': all_items.paginate(page, limit, False).items,
                     'number_of_pages': math.ceil(count / limit)}
         return {'items': all_items.all(), 'number_of_pages': math.ceil(count / limit)}
-
-DB.create_all()

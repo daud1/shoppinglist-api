@@ -7,6 +7,7 @@ from flask_bcrypt import Bcrypt
 APP = FlaskAPI('__name__')
 BCRPT = Bcrypt(APP)
 DB = SQLAlchemy(APP)
+DB.create_all()
 
 BCRYPT_LOG_ROUNDS = 12
 APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
