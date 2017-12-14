@@ -6,17 +6,11 @@ import sys
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-# from app.setup import APP
-import inspect
-currentdir = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
 
-from .setup import APP
+from app import APP
 
-# from app.setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
-#                      SignatureExpired, current_user)
+from .setup import (BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
+                    SignatureExpired, current_user)
 
 DB = SQLAlchemy(APP)
 

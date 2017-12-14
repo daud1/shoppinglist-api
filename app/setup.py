@@ -13,14 +13,7 @@ from flask_login import (LoginManager, UserMixin, current_user, login_required,
 from flask_mail import Mail, Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature, SignatureExpired
-
-from .forms import (ForgotPasswordForm, LoginForm, NewItemForm, NewListForm,
-                   ResetPasswordForm, SignUpForm)
-
-from .models import DB, Item, ShoppingList, User
-from .views import auth_views, item_views, list_views
-
-APP = FlaskAPI('__name__')
+from app import APP
 
 BCRPT = Bcrypt(APP)
 BCRYPT_LOG_ROUNDS = 12

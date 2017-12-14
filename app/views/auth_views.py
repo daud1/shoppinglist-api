@@ -3,10 +3,10 @@ Authentication Routes and View-Functions
 """
 from sqlalchemy import exc
 
-from app.forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
+from  ..forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
                        SignUpForm)
-from app.models import DB, User
-from app.setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, LOGIN_MANAGER,
+from  ..models import DB, User
+from ..setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, LOGIN_MANAGER,
                         BadSignature, Serializer, SignatureExpired,
                         current_user, jsonify, login_user, logout_user,
                         request, send_mail, swag_from)
