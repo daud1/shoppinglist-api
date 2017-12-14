@@ -1,0 +1,14 @@
+Call this route to return a list of the logged in User's ShoppingLists
+---
+tags:
+  - List
+parameters:
+- name: 
+  in: 
+  type: 
+  description: 
+responses:
+   200:
+    description: Lists successfully found and returned.
+   404:
+    description: No lists found.

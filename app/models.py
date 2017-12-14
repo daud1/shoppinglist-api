@@ -1,14 +1,24 @@
 """Database models for User, List and Item tables"""
 import math
+import os
+import sys
 
-from flask_login import UserMixin, current_user
-
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from itsdangerous import BadSignature, SignatureExpired
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+# from app.setup import APP
+import inspect
+currentdir = os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 
-from app import APP, DB, BCRPT, BCRYPT_LOG_ROUNDS
+from .setup import APP
 
+# from app.setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
+#                      SignatureExpired, current_user)
+
+DB = SQLAlchemy(APP)
 
 
 class User(DB.Model, UserMixin):
@@ -51,6 +61,7 @@ class User(DB.Model, UserMixin):
         """Return object data in easily serializeable format"""
         return {'email': self.email, 'password': self.password}
 
+
 class ShoppingList(DB.Model):
     """This class represents the shopping_list table"""
     __tablename__ = 'shopping_list'
@@ -84,6 +95,7 @@ class ShoppingList(DB.Model):
             return {'lists': all_lists.paginate(page, limit, False).items,
                     'number_of_pages': math.ceil(count / limit)}
         return {'lists': all_lists.all(), 'number_of_pages': math.ceil(count / limit)}
+
 
 class Item(DB.Model):
     """This class represents the item table"""

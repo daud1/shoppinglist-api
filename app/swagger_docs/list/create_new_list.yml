@@ -1,0 +1,14 @@
+Call this route to create a new ShoppingList.
+---
+tags:
+  - List
+parameters:
+- name: list_name
+  in: body
+  type: string
+  description: Title of the new ShoppingList
+responses:
+   201:
+    description: ShoppingList successfully created.
+   400:
+    description: ShoppingList was not created; probably because of form errors etc.

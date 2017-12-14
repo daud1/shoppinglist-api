@@ -5,3 +5,6 @@ omit =
     */manage.py
     */models.py
     */control.py
+    */__init__.py
+    */tests/*
+    */app/__init__.py

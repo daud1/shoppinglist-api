@@ -1,8 +1,9 @@
 """module for shoppinglist-api forms"""
 from flask_wtf import FlaskForm
-from app.models import User
-from wtforms.validators import DataRequired, EqualTo, Email, ValidationError
-from wtforms import TextField, PasswordField, IntegerField, StringField
+from wtforms import IntegerField, PasswordField, StringField, TextField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+
+from .models import User
 
 
 class ExistingUser(object):

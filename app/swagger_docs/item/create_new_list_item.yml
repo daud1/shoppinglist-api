@@ -1,0 +1,18 @@
+Call this route to create a new ShoppingList Item.
+---
+tags:
+  - Item
+parameters:
+- name: item_name
+  in: body
+  type: string
+  description: Title of the new ShoppingList
+- name: id
+  in: path
+  type: Integer
+  description: ID of ShoppingList to which Item is being added.
+responses:
+  201:
+   description: ShoppingList Item successfully created.
+  422:
+   description: ShoppingList Item was not created; form errors etc.

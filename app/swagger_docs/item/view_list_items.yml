@@ -1,0 +1,14 @@
+Call this route to return a list of the logged in User's ShoppingList Items.
+---
+tags:
+  - Item
+parameters:
+- name: id
+  in: path
+  type: Integer
+  description: ID of the ShoppingList whose items are to be returned.
+responses:
+   200:
+    description: List Items successfully found and returned.
+   404:
+    description: No list Items found.

@@ -1,0 +1,12 @@
+Call this route to log out a logged in User.
+---
+tags:
+  - Authentication
+parameters:
+- name: current_user
+  in: body
+  type: string
+  description: object representing the currently logged in User.
+responses:
+   200:
+    description: User successfully logged out.
