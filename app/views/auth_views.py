@@ -2,14 +2,15 @@
 Authentication Routes and View-Functions
 """
 from sqlalchemy import exc
+from flasgger import swag_from
 
-from  ..forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
-                       SignUpForm)
-from  ..models import DB, User
+from ..forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
+                     SignUpForm)
+from ..models import DB, User
 from ..setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, LOGIN_MANAGER,
-                        BadSignature, Serializer, SignatureExpired,
-                        current_user, jsonify, login_user, logout_user,
-                        request, send_mail, swag_from)
+                     BadSignature, Serializer, SignatureExpired,
+                     current_user, jsonify, login_user, logout_user,
+                     request, send_mail)
 
 
 @LOGIN_MANAGER.user_loader
@@ -19,21 +20,15 @@ def load_user(user_id):
 
 
 @APP.route('/auth/register', methods=['POST'])
-@swag_from('swagger_docs/auth/register.yml')
+@swag_from('/swagger_docs/auth/register.yml')
 def register():
     """This method registers a new User using the email and password"""
     form = SignUpForm()
     if form.validate_on_submit():
         usr = User(str(request.form['email']), str(request.form['password']))
         if usr:
-            try:
-                DB.session.add(usr)
-                DB.session.commit()
-            except exc.IntegrityError:
-                response = jsonify(
-                    {'ERR': 'User email already exists, please choose another'})
-                response.status_code = 400
-                return response
+            DB.session.add(usr)
+            DB.session.commit()
             response = jsonify({'MSG': 'User account successfully created.'})
             response.status_code = 201
         else:
@@ -41,12 +36,12 @@ def register():
             response.status_code = 400
     else:
         response = jsonify({'ERR': form.errors})
-        response.status_code = 400
+        response.status_code = 422
     return response
 
 
 @APP.route('/auth/login', methods=['POST'])
-@swag_from('swagger_docs/auth/login.yml')
+@swag_from('/swagger_docs/auth/login.yml')
 def login():
     """This method logs in a registered User and assigns them a Session Token."""
     form = LoginForm()
@@ -65,16 +60,16 @@ def login():
                 response = jsonify({'ERR': 'Incorrect Password'})
                 response.status_code = 401
         else:
-            response = jsonify({'ERR': 'User does not exist'})
+            response = jsonify({'ERR': 'User doesn\'t exist.'})
             response.status_code = 404
     else:
         response = jsonify({'ERR': form.errors})
-        response.status_code = 400
+        response.status_code = 422
     return response
 
 
 @APP.route('/auth/logout', methods=['POST'])
-@swag_from('swagger_docs/auth/logout.yml')
+@swag_from('/swagger_docs/auth/logout.yml')
 def logout():
     """This method is used to log out a logged in User."""
     if current_user is not None:
@@ -87,7 +82,7 @@ def logout():
 
 
 @APP.route('/auth/forgot-password', methods=['POST'])
-@swag_from('swagger_docs/auth/forgot_password.yml')
+@swag_from('/swagger_docs/auth/forgot_password.yml')
 def forgotten_password():
     """
     Method to verify email and send password reset link for forgotten password
@@ -108,18 +103,19 @@ def forgotten_password():
         send_mail('Password Reset Requested',
                   "david.mwebaza@andela.com",
                   [form.email.data],
-                  email_body)
+                  email_body
+                  )
         response = jsonify({'MSG': 'Password Reset Email sucessfully sent!'})
         response.status_code = 200
     else:
         response = jsonify(
             {'ERR': str(form.errors) + ':Email doesn\'t exist!'})
-        response.status_code = 400
+        response.status_code = 422
     return response
 
 
 @APP.route('/auth/reset_password/<token>', methods=['POST'])
-@swag_from('swagger_docs/auth/reset_password.yml')
+@swag_from('/swagger_docs/auth/reset_password.yml')
 def reset(token=None):
     """
     Method to reset user password
@@ -148,5 +144,5 @@ def reset(token=None):
         response.status_code = 200
     else:
         response = jsonify({'ERR': form.errors})
-        response.status_code = 402
+        response.status_code = 422
     return response

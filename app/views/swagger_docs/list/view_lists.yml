@@ -3,10 +3,10 @@ Call this route to return a list of the logged in User's ShoppingLists
 tags:
   - List
 parameters:
-- name: 
-  in: 
-  type: 
-  description: 
+- name: id
+  in: path
+  type: integer
+  description: The User ID for which to return all associated lists
 responses:
    200:
     description: Lists successfully found and returned.

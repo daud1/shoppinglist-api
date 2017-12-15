@@ -14,12 +14,12 @@ class ListTestCases(APITestCases):
         """Test API can create a shopping list"""
         with APP.test_client() as client:
             tkn = create_and_login_user(client)
-            res0 = client.post('/shoppinglists', data={'list_name': ''},
+            res0 = client.post('/shoppinglists/', data={'list_name': ''},
                                headers={
                                    'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % tkn})
-            self.assertEqual(res0.status_code, 400)
-            res1 = client.post('/shoppinglists', data=LIST_DATA,
+            self.assertEqual(res0.status_code, 422)
+            res1 = client.post('/shoppinglists/', data=LIST_DATA,
                                headers={
                                    'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % tkn
@@ -42,7 +42,7 @@ class ListTestCases(APITestCases):
                                      'Content':          'Application/x-www-form-urlencoded',
                                      'Authorization':    'Basic %s' % tkn
                                  })
-            self.assertEqual(res2.status_code, 204)
+            self.assertEqual(res2.status_code, 200)
 
     def test_shoppinglist_edit(self):
         """Test API can edit an existing shopping list"""
@@ -74,12 +74,32 @@ class ListTestCases(APITestCases):
         """Test API can retrieve all existing lists"""
         with APP.test_client() as client:
             tkn = create_and_login_user(client)
+            res0 = client.get('/shoppinglists/',
+                              headers={
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            print (res0)
+            self.assertEqual(res0.status_code, 404)
+
+    def test_api_can_get_all_lists_two(self):
+        with APP.test_client() as client:
+            tkn = create_and_login_user(client)
             create_list_and_add_item(client, tkn)
-            res1 = client.get('/shoppinglists',
+            res0 = client.get('/shoppinglists/',
+                              headers={
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            self.assertEqual(res0.status_code, 200)
+            res1 = client.get('/shoppinglists/?q=t',
                               headers={
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res1.status_code, 200)
+            res2 = client.get('/shoppinglists/?q=z',
+                              headers={
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            self.assertEqual(res2.status_code, 404)
         with APP.test_client() as client:
-            res0 = client.get('/shoppinglists')
+            res0 = client.get('/shoppinglists/')
             self.assertEqual(res0.status_code, 302)

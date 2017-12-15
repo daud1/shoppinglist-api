@@ -7,9 +7,10 @@ from .models import User
 
 
 class ExistingUser(object):
-    """class to validate if a given email exists in the database"""
+    """class to validate if a given email exists in the database
+    """
 
-    def __init__(self, message="Email does not exist"):
+    def __init__(self, message=""):
         self.message = message
 
     def __call__(self, form, field):
@@ -20,15 +21,17 @@ class ExistingUser(object):
 class LoginForm(FlaskForm):
     """class to represent the login form"""
     email = TextField('Email Address', validators=[
-        DataRequired(message='Please enter an email address'), Email()])
+        DataRequired(message='Please enter an email address'),
+        Email()])
     password = PasswordField('Enter Password', validators=[
         DataRequired('Please enter your password')])
 
 
 class SignUpForm(FlaskForm):
     """class to represent the sign-up form"""
-    email = TextField('Email Address', validators=[DataRequired(
-        message='Enter your email address'), Email('Invalid Email')])
+    email = TextField('Email Address', validators=[
+        DataRequired(message='Enter your email address.'),
+        Email()])
     password = PasswordField('Password', validators=[DataRequired(
         message='Enter a password.'), EqualTo('confirm')])
     confirm = PasswordField('Confirm Password', validators=[DataRequired(

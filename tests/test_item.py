@@ -27,7 +27,7 @@ class ItemTestCases(APITestCases):
                                      'Content':          'Application/x-www-form-urlencoded',
                                      'Authorization':    'Basic %s' % tkn
                                  })
-            self.assertEqual(res1.status_code, 204)
+            self.assertEqual(res1.status_code, 200)
 
     def test_api_edit_item(self):
         """Test API can edit items on a given shoppinglist"""
@@ -55,8 +55,29 @@ class ItemTestCases(APITestCases):
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res2.status_code, 201)
+            res3 = client.put('/shoppinglists/1/items/1',
+                              data={'item_name':     'testItemEdit',
+                                    'quantity':      '4'},
+                              headers={
+                                  'Content':          'Application/x-www-form-urlencoded',
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            self.assertEqual(res3.status_code, 201)
 
-    def test_api_can_get_all_items(self):
+    def test_api_can_get_all_items_one(self):
+        """Test API can return error for no items """
+        with APP.test_client() as client:
+            tkn = create_and_login_user(client)
+            client.post('/shoppinglists/', data=LIST_DATA,
+                        headers={
+                            'Content':          'Application/x-www-form-urlencoded',
+                            'Authorization':    'Basic %s' % tkn
+                        })
+            res = client.get('/shoppinglists/1',
+                             headers={'Authorization':    'Basic %s' % tkn})
+            self.assertEqual(res.status_code, 404)
+
+    def test_api_can_get_all_items_two(self):
         """Test API can display all items on a given shoppinglist"""
         with APP.test_client() as client:
             tkn = create_and_login_user(client)
@@ -66,6 +87,16 @@ class ItemTestCases(APITestCases):
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res0.status_code, 200)
+            res1 = client.get('/shoppinglists/1?q=t',
+                              headers={
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            self.assertEqual(res1.status_code, 200)
+            res2 = client.get('/shoppinglists/1?q=z',
+                              headers={
+                                  'Authorization':    'Basic %s' % tkn
+                              })
+            self.assertEqual(res2.status_code, 404)
             with APP.test_client() as client:
                 res0 = client.get('/shoppinglists/1')
                 self.assertEqual(res0.status_code, 302)
@@ -74,7 +105,7 @@ class ItemTestCases(APITestCases):
         """Test API can add items to a given shoppinglist"""
         with APP.test_client() as client:
             tkn = create_and_login_user(client)
-            client.post('/shoppinglists', data=LIST_DATA,
+            client.post('/shoppinglists/', data=LIST_DATA,
                         headers={
                             'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % tkn
@@ -83,7 +114,7 @@ class ItemTestCases(APITestCases):
                                headers={
                                    'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % tkn
-                               })
+            })
             self.assertEqual(res0.status_code, 422)
             res1 = client.post('/shoppinglists/1/items/', data=ITEM_DATA,
                                headers={

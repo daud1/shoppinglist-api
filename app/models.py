@@ -76,15 +76,17 @@ class ShoppingList(DB.Model):
     @staticmethod
     def search(que, page=1):
         """This method implements search and pagination."""
-        all_lists = ShoppingList.query.filter_by(id=current_user.id)
+        all_lists = ShoppingList.query.filter_by(user_id=current_user.id)
         count = all_lists.count()
         limit = 10
+
         if que:
             all_lists = all_lists.filter(
-                func.lower(ShoppingList.name).like(
+                func.lower(ShoppingList.list_name).like(
                     "%" + que.lower().strip() + "%")
             )
-        count = all_lists.count()
+            count = all_lists.count()
+
         if isinstance(page, int):
             return {'lists': all_lists.paginate(page, limit, False).items,
                     'number_of_pages': math.ceil(count / limit)}
@@ -108,7 +110,12 @@ class Item(DB.Model):
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
-        return {'item_name': self.item_name, 'list_id': self.list_id}
+        return {
+            'item_id': self.item_id,
+            'item_name': self.item_name,
+            'quantity': self.quantity,
+            'list_id': self.list_id
+        }
 
     @staticmethod
     def search(que, id, page=1):
@@ -118,7 +125,7 @@ class Item(DB.Model):
         limit = 10
         if que:
             all_items = all_items.filter(
-                func.lower(Item.name).like(
+                func.lower(Item.item_name).like(
                     "%" + que.lower().strip() + "%")
             )
             count = all_items.count()

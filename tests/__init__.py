@@ -5,18 +5,21 @@ import json
 import unittest
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app.set_up import APP
+from app.setup import APP
 from app.models import DB
 from app.views import list_views, item_views, auth_views
 
 USER_DATA = {'email': 'test@domain.com', 'password': 'test123'}
 F_USER_DATA = {'email': 'test@domain.com', 'password': 'test12'}
 FF_USER_DATA = {'email': 'test2@domain.com', 'password': 'test123'}
+FFF_USER_DATA = {'email': '', 'password': 'test123'}
 
 REG_DATA = {'email': 'test@domain.com',
             'password': 'test123', 'confirm': 'test123'}
 F_REG_DATA = {'email': 'test@domain.com',
               'password': 'test123', 'confirm': 'test12'}
+FF_REG_DATA = {'email': 'test@domain',
+               'password': 'test123', 'confirm': 'test12'}
 
 ITEM_DATA = {'item_name': 'testItem'}
 LIST_DATA = {'list_name': 'testList'}
@@ -37,7 +40,7 @@ def create_list_and_add_item(client, tkn):
     """
     Helper function to create a list and add an item to it.
     """
-    client.post('/shoppinglists', data=LIST_DATA,
+    client.post('/shoppinglists/', data=LIST_DATA,
                 headers={
                     'Content':          'Application/x-www-form-urlencoded',
                     'Authorization':    'Basic %s' % tkn

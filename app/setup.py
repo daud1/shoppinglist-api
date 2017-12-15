@@ -4,9 +4,7 @@ Initialisation and configs for the ShoppingList API
 from functools import wraps
 
 from flasgger import Swagger
-from flasgger.utils import swag_from
 from flask import jsonify, redirect, request
-from flask_api import FlaskAPI
 from flask_bcrypt import Bcrypt
 from flask_login import (LoginManager, UserMixin, current_user, login_required,
                          login_user, logout_user)
@@ -33,7 +31,7 @@ APP.config['WTF_CSRF_ENABLED'] = False
 
 APP.config['SWAGGER'] = {
     'swagger': '2.0',
-    'specs_route': '/swagger_docs/',
+    'specs_route': 'week-two-API/app/views/swagger_docs/',
     'tags': [
         {
             'name': 'Authentication',
