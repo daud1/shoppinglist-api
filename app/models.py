@@ -1,8 +1,5 @@
 """Database models for User, List and Item tables"""
 import math
-import os
-import sys
-
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func

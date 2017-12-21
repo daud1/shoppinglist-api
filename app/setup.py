@@ -57,6 +57,7 @@ APP.config.update(dict(
     MAIL_PASSWORD='cr3{tW4ve',
 ))
 
+
 def send_mail(subject, sender, recipients, text_body):
     """implementation of send_mail from FlaskMail for sending emails"""
     msg = Message(subject, sender=sender, recipients=recipients)
@@ -80,3 +81,18 @@ def get_http_exception_handler(app):
 
 # Override the HTTP exception handler.
 APP.handle_http_exception = get_http_exception_handler(APP)
+
+
+@APP.after_request
+def apply_cross_origin_header(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
+                                                       "POST,PUT,DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-"\
+        "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+        "Access-Control-Request-Method, Access-Control-Request-Headers," \
+        "Access-Control-Allow-Origin, Authorization"
+
+    return response
