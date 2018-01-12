@@ -105,11 +105,11 @@ def forgotten_password():
                   [form.email.data],
                   email_body
                   )
+        
         response = jsonify({'MSG': 'Password Reset Email sucessfully sent!'})
         response.status_code = 200
     else:
-        response = jsonify(
-            {'ERR': str(form.errors) + ':Email doesn\'t exist!'})
+        response = jsonify({'ERR': str(form.errors)})
         response.status_code = 422
     return response
 

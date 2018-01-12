@@ -11,6 +11,7 @@ from flask_login import (LoginManager, UserMixin, current_user, login_required,
 from flask_mail import Mail, Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature, SignatureExpired
+
 from app import APP
 
 BCRPT = Bcrypt(APP)
@@ -23,7 +24,7 @@ LOGIN_MANAGER.init_app(APP)
 LOGIN_MANAGER.login_view = 'login'
 
 Swagger(APP)
-
+APP.config.from_object(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 APP.config['SECRET_KEY'] = 'not_really_secret'
@@ -47,6 +48,7 @@ APP.config['SWAGGER'] = {
         },
     ],
 }
+
 APP.config.update(dict(
     DEBUG=True,
     MAIL_SERVER='smtp.gmail.com',

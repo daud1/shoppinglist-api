@@ -16,7 +16,7 @@ class ExistingUser(object):
     def __call__(self, form, field):
         if not User.query.filter_by(email=field.data).first():
             raise ValidationError(self.message)
-
+#consider using another form of validation. This one seems to be glitchy.
 
 class LoginForm(FlaskForm):
     """class to represent the login form"""
@@ -55,7 +55,7 @@ class ForgotPasswordForm(FlaskForm):
     """class to represent the form password reset form. Takes the User's email ID"""
     email = TextField('Email Address', validators=[
         DataRequired(message='Enter your email address.'),
-        Email(), ExistingUser(message="User does not exist")])
+        Email(), ExistingUser()])
 
 
 class ResetPasswordForm(FlaskForm):

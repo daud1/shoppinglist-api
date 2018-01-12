@@ -1,13 +1,11 @@
 """Database models for User, List and Item tables"""
 import math
-from flask_login import UserMixin
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
-from app import APP
-
-from .setup import (BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
-                    SignatureExpired, current_user)
+from .setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
+                    SignatureExpired, current_user, UserMixin)
 
 DB = SQLAlchemy(APP)
 
@@ -54,7 +52,8 @@ class User(DB.Model, UserMixin):
 
 
 class ShoppingList(DB.Model):
-    """This class represents the shopping_list table"""
+    """This class represents the shopping_list table
+    """
     __tablename__ = 'shopping_list'
     id = DB.Column(DB.Integer, primary_key=True)
     list_name = DB.Column(DB.String(64), unique=True)
@@ -67,12 +66,14 @@ class ShoppingList(DB.Model):
 
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
+        """Return object data in easily serializeable format
+        """
         return {'list_name': self.list_name}
 
     @staticmethod
     def search(que, page=1):
-        """This method implements search and pagination."""
+        """This method implements search and pagination.
+        """
         all_lists = ShoppingList.query.filter_by(user_id=current_user.id)
         count = all_lists.count()
         limit = 10
@@ -91,7 +92,8 @@ class ShoppingList(DB.Model):
 
 
 class Item(DB.Model):
-    """This class represents the item table"""
+    """This class represents the item table
+    """
     __tablename__ = 'items'
     item_id = DB.Column(DB.Integer, primary_key=True)
     item_name = DB.Column(DB.String(32))
@@ -106,7 +108,8 @@ class Item(DB.Model):
 
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
+        """Return object data in easily serializeable format
+        """
         return {
             'item_id': self.item_id,
             'item_name': self.item_name,
@@ -116,7 +119,8 @@ class Item(DB.Model):
 
     @staticmethod
     def search(que, id, page=1):
-        """This method implements search and pagination."""
+        """This method implements search and pagination.
+        """
         all_items = Item.query.filter_by(list_id=id)
         count = all_items.count()
         limit = 10
