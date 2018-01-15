@@ -5,12 +5,13 @@ from flasgger import swag_from
 
 from app.forms import NewItemForm
 from app.models import DB, Item
-from app.setup import APP, jsonify, login_required, request
+from app.setup import APP, jsonify, login_required, request, cross_origin
+from app.views.auth_views import requires_auth
 
-
-@APP.route('/shoppinglists/<id>', methods=['GET'])
-@login_required
 @swag_from('/swagger_docs/item/view_list_items.yml')
+@requires_auth
+@APP.route('/shoppinglists/<id>', methods=['GET'])
+@cross_origin()
 def view_list(id):
     """Displays all the items belonging to a given ShoppingList."""
     if request.args.get('q'):
@@ -35,9 +36,10 @@ def view_list(id):
             response.status_code = 404
     return response
 
-
-@APP.route('/shoppinglists/<id>/items/', methods=['POST'])
 @swag_from('/swagger_docs/item/create_new_list_item.yml')
+@requires_auth
+@APP.route('/shoppinglists/<id>/items/', methods=['POST'])
+@cross_origin()
 def add_item(id):
     """Adds an item to a given ShoppingList."""
     form = NewItemForm()
@@ -56,10 +58,10 @@ def add_item(id):
         response.status_code = 422
     return response
 
-
-@APP.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
-@login_required
 @swag_from('/swagger_docs/item/edit_list_items.yml')
+@requires_auth
+@APP.route('/shoppinglists/<id>/items/<item_id>', methods=['PUT'])
+@cross_origin()
 def edit_item(id, item_id):
     """Edits an item on a given ShoppingList to the string passed."""
     form = NewItemForm()
@@ -89,10 +91,10 @@ def edit_item(id, item_id):
         response.status_code = 422
     return response
 
-
-@APP.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
-@login_required
 @swag_from('/swagger_docs/item/delete_list_items.yml')
+@requires_auth
+@APP.route('/shoppinglists/<id>/items/<item_id>', methods=['DELETE'])
+@cross_origin()
 def delete_item(id, item_id):
     """Deletes item from given ShoppingList."""
     del_item = Item.query.filter_by(list_id=id, item_id=item_id).first()

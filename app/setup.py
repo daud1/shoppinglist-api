@@ -4,8 +4,9 @@ Initialisation and configs for the ShoppingList API
 from functools import wraps
 
 from flasgger import Swagger
-from flask import jsonify, redirect, request
+from flask import jsonify, redirect, request, abort
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS, cross_origin
 from flask_login import (LoginManager, UserMixin, current_user, login_required,
                          login_user, logout_user)
 from flask_mail import Mail, Message
@@ -16,7 +17,7 @@ from app import APP
 
 BCRPT = Bcrypt(APP)
 BCRYPT_LOG_ROUNDS = 12
-
+CORS(APP)
 MAIL = Mail(APP)
 
 LOGIN_MANAGER = LoginManager()
@@ -85,16 +86,15 @@ def get_http_exception_handler(app):
 APP.handle_http_exception = get_http_exception_handler(APP)
 
 
-@APP.after_request
-def apply_cross_origin_header(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
+# @APP.after_request
+# def apply_cross_origin_header(response):
+#     response.headers['Access-Control-Allow-Origin'] = '*'
 
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
-                                                       "POST,PUT,DELETE"
-    response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-"\
-        "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
-        "Access-Control-Request-Method, Access-Control-Request-Headers," \
-        "Access-Control-Allow-Origin, Authorization"
-
-    return response
+#     response.headers["Access-Control-Allow-Credentials"] = "true"
+#     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
+#                                                        "POST,PUT,DELETE"
+#     response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-"\
+#         "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+#         "Access-Control-Request-Method, Access-Control-Request-Headers," \
+#         "Access-Control-Allow-Origin, Authorization"
+#     return response

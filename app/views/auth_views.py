@@ -10,17 +10,30 @@ from ..models import DB, User
 from ..setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, LOGIN_MANAGER,
                      BadSignature, Serializer, SignatureExpired,
                      current_user, jsonify, login_user, logout_user,
-                     request, send_mail)
+                     request, send_mail, abort, wraps, cross_origin)
 
 
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers["authorization"]
+        if not auth:  # no header set
+            abort(401)
+        user = User.verify_auth_token(auth)
+        if user is None:
+            abort(401)
+            return f(*args, **kwargs)
+    return decorated
+    
 @LOGIN_MANAGER.user_loader
 def load_user(user_id):
     """Returns User object given User's ID"""
     return User.query.get(int(user_id))
 
-
-@APP.route('/auth/register', methods=['POST'])
 @swag_from('/swagger_docs/auth/register.yml')
+@requires_auth
+@APP.route('/auth/register', methods=['POST'])
+@cross_origin()
 def register():
     """This method registers a new User using the email and password"""
     form = SignUpForm()
@@ -39,9 +52,10 @@ def register():
         response.status_code = 422
     return response
 
-
-@APP.route('/auth/login', methods=['POST'])
 @swag_from('/swagger_docs/auth/login.yml')
+@requires_auth
+@APP.route('/auth/login', methods=['POST'])
+@cross_origin()
 def login():
     """This method logs in a registered User and assigns them a Session Token."""
     form = LoginForm()
@@ -67,9 +81,10 @@ def login():
         response.status_code = 422
     return response
 
-
-@APP.route('/auth/logout', methods=['POST'])
 @swag_from('/swagger_docs/auth/logout.yml')
+@requires_auth
+@APP.route('/auth/logout', methods=['POST'])
+@cross_origin()
 def logout():
     """This method is used to log out a logged in User."""
     if current_user is not None:
@@ -80,9 +95,10 @@ def logout():
         response.status_code = 200
     return response
 
-
-@APP.route('/auth/forgot-password', methods=['POST'])
 @swag_from('/swagger_docs/auth/forgot_password.yml')
+@requires_auth
+@APP.route('/auth/forgot-password', methods=['POST'])
+@cross_origin()
 def forgotten_password():
     """
     Method to verify email and send password reset link for forgotten password
@@ -113,9 +129,10 @@ def forgotten_password():
         response.status_code = 422
     return response
 
-
-@APP.route('/auth/reset_password/<token>', methods=['POST'])
 @swag_from('/swagger_docs/auth/reset_password.yml')
+@requires_auth
+@APP.route('/auth/reset_password/<token>', methods=['POST'])
+@cross_origin()
 def reset(token=None):
     """
     Method to reset user password
