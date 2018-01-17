@@ -45,9 +45,9 @@ def add_item(id):
     form = NewItemForm()
     if form.validate_on_submit():
         if form.quantity.data is not None:
-            new_item = Item(form.item_name.data, id, form.quantity.data)
+            new_item = Item(form.name.data, id, form.quantity.data)
         else:
-            new_item = Item(form.item_name.data, id)
+            new_item = Item(form.name.data, id)
         # consider using exceptions, increasing qunatity for duplicate items
         DB.session.add(new_item)
         DB.session.commit()
@@ -69,14 +69,14 @@ def edit_item(id, item_id):
     if form.validate_on_submit():
         ed_item = Item.query.filter_by(list_id=id, item_id=item_id).first()
         if ed_item is not None:
-            if form.item_name.data:
-                ed_item.item_name = form.item_name.data
+            if form.name.data:
+                ed_item.name = form.name.data
 
             if form.quantity.data:
                 ed_item.quantity = form.quantity.data
 
-            if form.quantity.data and form.item_name.data:
-                ed_item.item_name = form.item_name.data
+            if form.quantity.data and form.name.data:
+                ed_item.name = form.name.data
                 ed_item.quantity = form.quantity.data
                 DB.session.commit()
         else:

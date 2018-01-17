@@ -40,13 +40,13 @@ class SignUpForm(FlaskForm):
 
 class NewListForm(FlaskForm):
     """class to represent the new-list form"""
-    list_name = StringField('Title', validators=[DataRequired(
+    name = StringField('Title', validators=[DataRequired(
         message='Enter a title for your shopping list')])
 
 
 class NewItemForm(FlaskForm):
     """class to represent the new-item form"""
-    item_name = TextField('Item Name', validators=[
+    name = TextField('Item Name', validators=[
         DataRequired('Enter a name for this item')])
     quantity = IntegerField('Quantity')
 

@@ -49,7 +49,7 @@ def create_list():
     """This function given creates a ShoppingList object with the title as the string passed."""
     form = NewListForm()
     if form.validate_on_submit():
-        new_list = ShoppingList(form.list_name.data, current_user.get_id())
+        new_list = ShoppingList(form.name.data, current_user.get_id())
         if new_list:
             DB.session.add(new_list)
             DB.session.commit()
@@ -77,7 +77,7 @@ def edit_list(id):
     if form.validate_on_submit():
         ed_list = ShoppingList.query.filter_by(id=id).first()
         if ed_list is not None:
-            ed_list.list_name = form.list_name.data
+            ed_list.name = form.name.data
             DB.session.commit()
             response = jsonify({'MSG': 'Success'})
             response.status_code = 201

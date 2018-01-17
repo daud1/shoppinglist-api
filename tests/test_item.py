@@ -35,28 +35,28 @@ class ItemTestCases(APITestCases):
             tkn = create_and_login_user(client)
             create_list_and_add_item(client, tkn)
             res0 = client.put('/shoppinglists/1/items/1',
-                              data={'item_name':     ''},
+                              data={'name':     ''},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res0.status_code, 422)
             res1 = client.put('/shoppinglists/1/items/2',
-                              data={'item_name':     'testItemEdit'},
+                              data={'name':     'testItemEdit'},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res1.status_code, 404)
             res2 = client.put('/shoppinglists/1/items/1',
-                              data={'item_name':     'testItemEdit'},
+                              data={'name':     'testItemEdit'},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res2.status_code, 201)
             res3 = client.put('/shoppinglists/1/items/1',
-                              data={'item_name':     'testItemEdit',
+                              data={'name':     'testItemEdit',
                                     'quantity':      '4'},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
@@ -110,7 +110,7 @@ class ItemTestCases(APITestCases):
                             'Content':          'Application/x-www-form-urlencoded',
                             'Authorization':    'Basic %s' % tkn
                         })
-            res0 = client.post('/shoppinglists/1/items/', data={'item_name': ''},
+            res0 = client.post('/shoppinglists/1/items/', data={'name': ''},
                                headers={
                                    'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % tkn

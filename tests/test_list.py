@@ -14,7 +14,7 @@ class ListTestCases(APITestCases):
         """Test API can create a shopping list"""
         with APP.test_client() as client:
             tkn = create_and_login_user(client)
-            res0 = client.post('/shoppinglists/', data={'list_name': ''},
+            res0 = client.post('/shoppinglists/', data={'name': ''},
                                headers={
                                    'Content':          'Application/x-www-form-urlencoded',
                                    'Authorization':    'Basic %s' % tkn})
@@ -50,20 +50,20 @@ class ListTestCases(APITestCases):
             tkn = create_and_login_user(client)
             create_list_and_add_item(client, tkn)
             res0 = client.put('/shoppinglists/1',
-                              data={'list_name':     ''},
+                              data={'name':     ''},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res0.status_code, 422)
             res1 = client.put('/shoppinglists/2',
-                              data={'list_name':     'testListEdit'},
+                              data={'name':     'testListEdit'},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn
                               })
             self.assertEqual(res1.status_code, 404)
-            res2 = client.put('/shoppinglists/1', data={'list_name': 'testListEdit'},
+            res2 = client.put('/shoppinglists/1', data={'name': 'testListEdit'},
                               headers={
                                   'Content':          'Application/x-www-form-urlencoded',
                                   'Authorization':    'Basic %s' % tkn

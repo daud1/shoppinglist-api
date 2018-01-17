@@ -21,8 +21,8 @@ F_REG_DATA = {'email': 'test@domain.com',
 FF_REG_DATA = {'email': 'test@domain',
                'password': 'test123', 'confirm': 'test12'}
 
-ITEM_DATA = {'item_name': 'testItem'}
-LIST_DATA = {'list_name': 'testList'}
+ITEM_DATA = {'name': 'testItem'}
+LIST_DATA = {'name': 'testList'}
 
 
 def create_and_login_user(client):

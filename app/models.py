@@ -56,19 +56,19 @@ class ShoppingList(DB.Model):
     """
     __tablename__ = 'shopping_list'
     id = DB.Column(DB.Integer, primary_key=True)
-    list_name = DB.Column(DB.String(64), unique=True)
+    name = DB.Column(DB.String(64), unique=True)
     user_id = DB.Column(DB.Integer, DB.ForeignKey(
         'user.id', ondelete='CASCADE'))
 
-    def __init__(self, list_name, user_id):
-        self.list_name = list_name
+    def __init__(self, name, user_id):
+        self.name = name
         self.user_id = user_id
 
     @property
     def serialize(self):
         """Return object data in easily serializeable format
         """
-        return {'list_name': self.list_name}
+        return {'name': self.name}
 
     @staticmethod
     def search(que, page=1):
@@ -80,7 +80,7 @@ class ShoppingList(DB.Model):
 
         if que:
             all_lists = all_lists.filter(
-                func.lower(ShoppingList.list_name).like(
+                func.lower(ShoppingList.name).like(
                     "%" + que.lower().strip() + "%")
             )
             count = all_lists.count()
@@ -96,13 +96,13 @@ class Item(DB.Model):
     """
     __tablename__ = 'items'
     item_id = DB.Column(DB.Integer, primary_key=True)
-    item_name = DB.Column(DB.String(32))
+    name = DB.Column(DB.String(32))
     quantity = DB.Column(DB.Integer)
     list_id = DB.Column(DB.Integer, DB.ForeignKey(
         'shopping_list.id', ondelete='CASCADE'), nullable=False)
 
-    def __init__(self, item_name, list_id, quantity=1):
-        self.item_name = item_name
+    def __init__(self, name, list_id, quantity=1):
+        self.name = name
         self.list_id = list_id
         self.quantity = quantity
 
@@ -112,7 +112,7 @@ class Item(DB.Model):
         """
         return {
             'item_id': self.item_id,
-            'item_name': self.item_name,
+            'name': self.name,
             'quantity': self.quantity,
             'list_id': self.list_id
         }
@@ -126,7 +126,7 @@ class Item(DB.Model):
         limit = 10
         if que:
             all_items = all_items.filter(
-                func.lower(Item.item_name).like(
+                func.lower(Item.name).like(
                     "%" + que.lower().strip() + "%")
             )
             count = all_items.count()
