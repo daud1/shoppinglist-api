@@ -1,14 +1,7 @@
-"""Module for database migrations"""
-from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager
+from flask_migrate import MigrateCommand
+from app import mgr, migr, db
 
-from app import APP
-from app.models import DB
-
-MIGRATE = Migrate(APP, DB)
-MANAGER = Manager(APP)
-
-MANAGER.add_command('DB', MigrateCommand)
+mgr.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
-    MANAGER.run()
+    mgr.run()

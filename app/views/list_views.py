@@ -1,18 +1,18 @@
 """
 ShoppingList Routes and View-Functions
 """
-from flasgger import swag_from
+# from flasgger import swag_from
+from flask import jsonify, request
 
+from app import app
 from app.forms import NewListForm
-from app.models import DB, Item, ShoppingList
-from app.setup import (APP, current_user, request, jsonify, cross_origin)
-from app.views.auth_views import requires_auth
+from app.models import Item, ShoppingList, db
+from . import requires_auth
 
 
-@swag_from('/swagger_docs/list/view_lists.yml')
+# @swag_from('/swagger_docs/list/view_lists.yml')
+@app.route('/shoppinglists/', methods=['GET'])
 @requires_auth
-@APP.route('/shoppinglists/', methods=['GET'])
-@cross_origin()
 def view_all_lists():
     """This function displays all of a User's ShoppingLists."""
     if request.args.get("q"):
@@ -41,15 +41,15 @@ def view_all_lists():
     return response
 
 
-@swag_from('/swagger_docs/list/create_new_list.yml')
+# @swag_from('/swagger_docs/list/create_new_list.yml')
+@app.route('/shoppinglists/', methods=['POST'])
 @requires_auth
-@APP.route('/shoppinglists/', methods=['POST'])
-@cross_origin()
 def create_list():
     """This function given creates a ShoppingList object with the title as the string passed."""
     form = NewListForm()
     if form.validate_on_submit():
         new_list = ShoppingList(form.name.data, current_user.get_id())
+        print(current_user.get_id())
         if new_list:
             DB.session.add(new_list)
             DB.session.commit()
@@ -67,10 +67,9 @@ def create_list():
     return response
 
 
+# @swag_from('/swagger_docs/list/edit_list.yml')
+@app.route('/shoppinglists/<id>', methods=['PUT'])
 @requires_auth
-@swag_from('/swagger_docs/list/edit_list.yml')
-@APP.route('/shoppinglists/<id>', methods=['PUT'])
-@cross_origin()
 def edit_list(id):
     """Edits given ShoppingList title to string passed in."""
     form = NewListForm()
@@ -90,10 +89,9 @@ def edit_list(id):
     return response
 
 
+# @swag_from('/swagger_docs/list/delete_list.yml')
+@app.route('/shoppinglists/<id>', methods=['DELETE'])
 @requires_auth
-@swag_from('/swagger_docs/list/delete_list.yml')
-@APP.route('/shoppinglists/<id>', methods=['DELETE'])
-@cross_origin()
 def delete_list(id):
     """Deletes a given ShoppingList."""
     del_list = ShoppingList.query.filter_by(id=id).first()

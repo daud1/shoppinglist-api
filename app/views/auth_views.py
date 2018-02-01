@@ -1,47 +1,29 @@
 """
 Authentication Routes and View-Functions
 """
+# from flasgger import swag_from
+from flask import abort, jsonify, request
+from flask_login import current_user, login_user, logout_user
+from itsdangerous import BadSignature, Serializer, SignatureExpired
 from sqlalchemy import exc
-from flasgger import swag_from
 
-from ..forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
-                     SignUpForm)
-from ..models import DB, User
-from ..setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, LOGIN_MANAGER,
-                     BadSignature, Serializer, SignatureExpired,
-                     current_user, jsonify, login_user, logout_user,
-                     request, send_mail, abort, wraps, cross_origin)
+from app import app, bcrypt, db, mail
+from app.forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
+                       SignUpForm)
+from app.models import User
 
+from . import requires_auth, send_mail
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.headers["authorization"]
-        if not auth:  # no header set
-            abort(401)
-        user = User.verify_auth_token(auth)
-        if user is None:
-            abort(401)
-            return f(*args, **kwargs)
-    return decorated
-    
-@LOGIN_MANAGER.user_loader
-def load_user(user_id):
-    """Returns User object given User's ID"""
-    return User.query.get(int(user_id))
-
-@swag_from('/swagger_docs/auth/register.yml')
-@requires_auth
-@APP.route('/auth/register', methods=['POST'])
-@cross_origin()
+# @swag_from('/swagger_docs/auth/register.yml')
+@app.route('/auth/register', methods=['POST'])
 def register():
     """This method registers a new User using the email and password"""
     form = SignUpForm()
     if form.validate_on_submit():
         usr = User(str(request.form['email']), str(request.form['password']))
         if usr:
-            DB.session.add(usr)
-            DB.session.commit()
+            db.session.add(usr)
+            db.session.commit()
             response = jsonify({'MSG': 'User account successfully created.'})
             response.status_code = 201
         else:
@@ -52,10 +34,8 @@ def register():
         response.status_code = 422
     return response
 
-@swag_from('/swagger_docs/auth/login.yml')
-@requires_auth
-@APP.route('/auth/login', methods=['POST'])
-@cross_origin()
+# @swag_from('/swagger_docs/auth/login.yml')
+@app.route('/auth/login', methods=['POST'])
 def login():
     """This method logs in a registered User and assigns them a Session Token."""
     form = LoginForm()
@@ -63,11 +43,13 @@ def login():
         usr = User.query.filter_by(email=str(request.form['email'])).first()
         if usr:
             usr_temp = usr.serialize
-            if BCRPT.check_password_hash(usr_temp['password'], str(request.form['password'])):
-                tkn = usr.generate_auth_token().decode()
+            if bcrypt.check_password_hash(usr_temp['password'], str(request.form['password'])):
+                tkn = usr.generate_auth_token()
+                print(tkn)
                 usr.token = tkn
-                DB.session.commit()
+                db.session.commit()
                 login_user(usr)
+                print(current_user.get_id())
                 response = jsonify({'MSG': 'Login Successful', 'token': tkn})
                 response.status_code = 200
             else:
@@ -81,24 +63,21 @@ def login():
         response.status_code = 422
     return response
 
-@swag_from('/swagger_docs/auth/logout.yml')
+# @swag_from('/swagger_docs/auth/logout.yml')
+@app.route('/auth/logout', methods=['POST'])
 @requires_auth
-@APP.route('/auth/logout', methods=['POST'])
-@cross_origin()
 def logout():
     """This method is used to log out a logged in User."""
     if current_user is not None:
         current_user.token = None
-        DB.session.commit()
+        db.session.commit()
         logout_user()
         response = jsonify({"success": "You have successfully logged out!"})
         response.status_code = 200
     return response
 
-@swag_from('/swagger_docs/auth/forgot_password.yml')
-@requires_auth
-@APP.route('/auth/forgot-password', methods=['POST'])
-@cross_origin()
+# @swag_from('/swagger_docs/auth/forgot_password.yml')
+@app.route('/auth/forgot-password', methods=['POST'])
 def forgotten_password():
     """
     Method to verify email and send password reset link for forgotten password
@@ -106,7 +85,7 @@ def forgotten_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=request.form['email']).first()
-        ser = Serializer(APP.config['SECRET_KEY'], expires_in=3600)
+        ser = Serializer(app.config['SECRET_KEY'])
         token = ser.dumps({'email': user.email})
         password_reset_url = \
             "http://localhost:5000/" \
@@ -129,16 +108,14 @@ def forgotten_password():
         response.status_code = 422
     return response
 
-@swag_from('/swagger_docs/auth/reset_password.yml')
-@requires_auth
-@APP.route('/auth/reset_password/<token>', methods=['POST'])
-@cross_origin()
+# @swag_from('/swagger_docs/auth/reset_password.yml')
+@app.route('/auth/reset_password/<token>', methods=['POST'])
 def reset(token=None):
     """
     Method to reset user password
     """
-    ser = Serializer(APP.config['SECRET_KEY'])
-
+    # Switch to jwt implementation
+    ser = Serializer(app.config['SECRET_KEY'])
     try:
         data = ser.loads(token)
     except SignatureExpired:
@@ -154,9 +131,9 @@ def reset(token=None):
     user_email = data['email']
     if form.validate_on_submit():
         user = User.query.filter_by(email=user_email)
-        user.password = BCRPT.generate_password_hash(
-            str(request.form['new_password']), BCRYPT_LOG_ROUNDS).decode()
-        DB.session.commit()
+        user.password = bcrypt.generate_password_hash(
+            str(request.form['new_password']), app.config['BCRYPT_LOG_ROUNDS']).decode()
+        db.session.commit()
         response = jsonify({'MSG': 'Successfully reset password!'})
         response.status_code = 200
     else:

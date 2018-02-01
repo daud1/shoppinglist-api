@@ -1,32 +1,29 @@
 """Database models for User, List and Item tables"""
 import math
 
-from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, current_user
+from itsdangerous import Serializer, SignatureExpired, BadSignature
 from sqlalchemy import func
 
-from .setup import (APP, BCRPT, BCRYPT_LOG_ROUNDS, BadSignature, Serializer,
-                    SignatureExpired, current_user, UserMixin)
+from app import app, bcrypt, db
 
-DB = SQLAlchemy(APP)
-
-
-class User(DB.Model, UserMixin):
+class User(db.Model, UserMixin):
     """This class represents the user table"""
     __tablename__ = 'user'
-    id = DB.Column(DB.Integer, primary_key=True)
-    email = DB.Column(DB.String(255), unique=True)
-    password = DB.Column(DB.String(255))
-    token = DB.Column(DB.String(255), nullable=True)
-    lists = DB.relationship('ShoppingList', backref='user', lazy='dynamic')
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    token = db.Column(db.String(255), nullable=True)
+    lists = db.relationship('ShoppingList', backref='user', lazy='dynamic')
 
     def __init__(self, email, password):
         self.email = email
-        self.password = BCRPT.generate_password_hash(
-            password, BCRYPT_LOG_ROUNDS).decode()
+        self.password = bcrypt.generate_password_hash(
+            password, app.config['BCRYPT_LOG_ROUNDS']).decode()
 
     def generate_auth_token(self, expiration=10800):
         """method to generate an authorisation token for user on successful login"""
-        ser = Serializer(APP.config['SECRET_KEY'], expires_in=expiration)
+        ser = Serializer(app.config['SECRET_KEY'])
         return ser.dumps({'id': self.id})
 
     def __repr__(self):
@@ -35,7 +32,7 @@ class User(DB.Model, UserMixin):
     @staticmethod
     def verify_auth_token(token):
         """method to verify authorisation token"""
-        ser = Serializer(APP.config['SECRET_KEY'])
+        ser = Serializer(app.config['SECRET_KEY'])
         try:
             data = ser.loads(token)
         except SignatureExpired:
@@ -51,13 +48,13 @@ class User(DB.Model, UserMixin):
         return {'email': self.email, 'password': self.password}
 
 
-class ShoppingList(DB.Model):
+class ShoppingList(db.Model):
     """This class represents the shopping_list table
     """
     __tablename__ = 'shopping_list'
-    id = DB.Column(DB.Integer, primary_key=True)
-    name = DB.Column(DB.String(64), unique=True)
-    user_id = DB.Column(DB.Integer, DB.ForeignKey(
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(
         'user.id', ondelete='CASCADE'))
 
     def __init__(self, name, user_id):
@@ -68,7 +65,11 @@ class ShoppingList(DB.Model):
     def serialize(self):
         """Return object data in easily serializeable format
         """
-        return {'name': self.name}
+        return {
+            'name': self.name,
+            'list_id': self.id,
+            'user_id': self.user_id
+        }
 
     @staticmethod
     def search(que, page=1):
@@ -91,14 +92,14 @@ class ShoppingList(DB.Model):
         return {'lists': all_lists.all(), 'number_of_pages': math.ceil(count / limit)}
 
 
-class Item(DB.Model):
+class Item(db.Model):
     """This class represents the item table
     """
     __tablename__ = 'items'
-    item_id = DB.Column(DB.Integer, primary_key=True)
-    name = DB.Column(DB.String(32))
-    quantity = DB.Column(DB.Integer)
-    list_id = DB.Column(DB.Integer, DB.ForeignKey(
+    item_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32))
+    quantity = db.Column(db.Integer)
+    list_id = db.Column(db.Integer, db.ForeignKey(
         'shopping_list.id', ondelete='CASCADE'), nullable=False)
 
     def __init__(self, name, list_id, quantity=1):

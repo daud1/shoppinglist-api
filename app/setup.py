@@ -13,7 +13,6 @@ from flask_mail import Mail, Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import BadSignature, SignatureExpired
 
-from app import APP
 
 BCRPT = Bcrypt(APP)
 BCRYPT_LOG_ROUNDS = 12
@@ -24,7 +23,6 @@ LOGIN_MANAGER = LoginManager()
 LOGIN_MANAGER.init_app(APP)
 LOGIN_MANAGER.login_view = 'login'
 
-Swagger(APP)
 APP.config.from_object(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/db_five'
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -33,7 +31,7 @@ APP.config['WTF_CSRF_ENABLED'] = False
 
 APP.config['SWAGGER'] = {
     'swagger': '2.0',
-    'specs_route': 'week-two-API/app/views/swagger_docs/',
+    'specs_route': '/week-two-API/app/views/swagger_docs/',
     'tags': [
         {
             'name': 'Authentication',
@@ -84,17 +82,3 @@ def get_http_exception_handler(app):
 
 # Override the HTTP exception handler.
 APP.handle_http_exception = get_http_exception_handler(APP)
-
-
-# @APP.after_request
-# def apply_cross_origin_header(response):
-#     response.headers['Access-Control-Allow-Origin'] = '*'
-
-#     response.headers["Access-Control-Allow-Credentials"] = "true"
-#     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
-#                                                        "POST,PUT,DELETE"
-#     response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-"\
-#         "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
-#         "Access-Control-Request-Method, Access-Control-Request-Headers," \
-#         "Access-Control-Allow-Origin, Authorization"
-#     return response
