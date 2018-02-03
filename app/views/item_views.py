@@ -49,8 +49,8 @@ def add_item(id):
         else:
             new_item = Item(form.name.data, id)
         # consider using exceptions, increasing qunatity for duplicate items
-        DB.session.add(new_item)
-        DB.session.commit()
+        db.session.add(new_item)
+        db.session.commit()
         response = jsonify({'MSG': 'Item added to list'})
         response.status_code = 201
     else:
@@ -77,7 +77,7 @@ def edit_item(id, item_id):
             if form.quantity.data and form.name.data:
                 ed_item.name = form.name.data
                 ed_item.quantity = form.quantity.data
-                DB.session.commit()
+                db.session.commit()
         else:
             response = jsonify({'ERR': 'Item does not exist.'})
             response.status_code = 404
@@ -97,8 +97,8 @@ def delete_item(id, item_id):
     """Deletes item from given ShoppingList."""
     del_item = Item.query.filter_by(list_id=id, item_id=item_id).first()
     if del_item:
-        DB.session.delete(del_item)
-        DB.session.commit()
+        db.session.delete(del_item)
+        db.session.commit()
         response = jsonify({'MSG': 'Successfully deleted.'})
         response.status_code = 200
     else:

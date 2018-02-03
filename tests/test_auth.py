@@ -1,6 +1,8 @@
 """
 Authentication Unittests
 """
+import datetime
+import jwt
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from tests import (F_REG_DATA, F_USER_DATA, FF_REG_DATA, FF_USER_DATA,
@@ -52,11 +54,11 @@ class AuthTestCases(APITestCases):
         res1 = self.client.post('/auth/logout',
                             headers={
                                 'Content':          'application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res1.status_code, 200)
 
-    def test_password_reset_fails_given_form_errors(self):
+    def test_sending_resetlink_fails_given_form_errors(self):
         """
         Test API can send password reset link to email for forgotten passwords
         """
@@ -85,24 +87,60 @@ class AuthTestCases(APITestCases):
 
     def test_password_reset_fails_given_expired_token(self):
         create_user(self.client)
-        ser = Serializer(app.config['SECRET_KEY'])
-        token = ser.dumps({'email': 'test@domain.com'})
-        password_reset_url = "/auth/reset_password/" + token.decode("utf-8")
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow()\
+                        + datetime.timedelta(days=0, seconds=-30),
+                'iat': datetime.datetime.utcnow(),
+                'sub': 1
+            }
+            token = jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+        password_reset_url = "/auth/reset_password/" + token.decode()
         res2 = self.client.post(password_reset_url)
         self.assertEqual(res2.status_code, 401)
 
     def test_password_reset_fails_given_form_errors(self):
         create_user(self.client)
-        ser = Serializer(app.config['SECRET_KEY'])
-        token = ser.dumps({'email': 'test@domain.com'})
-        password_reset_url = "/auth/reset_password/" + token.decode("utf-8")
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow()\
+                        + datetime.timedelta(days=0, seconds=600),
+                'iat': datetime.datetime.utcnow(),
+                'sub': 1
+            }
+            token = jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+        password_reset_url = "/auth/reset_password/" + token.decode()
         res0 = self.client.post(password_reset_url, data={"new_password": 123, "confirm": 13})
         self.assertEqual(res0.status_code, 422)
 
     def test_successful_password_reset(self):
         create_user(self.client)
-        ser = Serializer(app.config['SECRET_KEY'])
-        token = ser.dumps({'email': 'test@domain.com'})
-        password_reset_url = "/auth/reset_password/" + token.decode("utf-8")
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow()\
+                        + datetime.timedelta(days=0, seconds=600),
+                'iat': datetime.datetime.utcnow(),
+                'sub': 1
+            }
+            token = jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+        password_reset_url = "/auth/reset_password/" + token.decode()
         res1 = self.client.post(password_reset_url, data={"new_password": 123, "confirm": 123})
         self.assertEqual(res1.status_code, 200)

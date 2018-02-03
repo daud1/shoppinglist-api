@@ -7,6 +7,7 @@ from flask import jsonify, request
 from app import app
 from app.forms import NewListForm
 from app.models import Item, ShoppingList, db
+from flask_login import current_user
 from . import requires_auth
 
 
@@ -51,8 +52,8 @@ def create_list():
         new_list = ShoppingList(form.name.data, current_user.get_id())
         print(current_user.get_id())
         if new_list:
-            DB.session.add(new_list)
-            DB.session.commit()
+            db.session.add(new_list)
+            db.session.commit()
             response = jsonify({
                 'MSG': 'Successfully created list',
                 'list_id': new_list.id
@@ -77,7 +78,7 @@ def edit_list(id):
         ed_list = ShoppingList.query.filter_by(id=id).first()
         if ed_list is not None:
             ed_list.name = form.name.data
-            DB.session.commit()
+            db.session.commit()
             response = jsonify({'MSG': 'Success'})
             response.status_code = 201
         else:
@@ -97,13 +98,13 @@ def delete_list(id):
     del_list = ShoppingList.query.filter_by(id=id).first()
     del_items = Item.query.filter_by(list_id=id).all()
     if del_list is not None:
-        DB.session.delete(del_list)
+        db.session.delete(del_list)
 
         if del_items is not None:
             for item in del_items:
-                DB.session.delete(item)
+                db.session.delete(item)
 
-        DB.session.commit()
+        db.session.commit()
         response = jsonify({'MSG': 'Successfully deleted.'})
         response.status_code = 200
     else:

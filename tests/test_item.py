@@ -18,7 +18,7 @@ class ItemTestCases(APITestCases):
         res0 = self.client.delete('/shoppinglists/1/items/2',
                                 headers={
                                     'Content':          'Application/x-www-form-urlencoded',
-                                    'Authorization':    'Basic %s' % tkn
+                                    'Authorization':    tkn
                                 })
         self.assertEqual(res0.status_code, 404)
 
@@ -28,7 +28,7 @@ class ItemTestCases(APITestCases):
         res1 = self.client.delete('/shoppinglists/1/items/1',
                                 headers={
                                     'Content':          'Application/x-www-form-urlencoded',
-                                    'Authorization':    'Basic %s' % tkn
+                                    'Authorization':    tkn
                                 })
         self.assertEqual(res1.status_code, 200)
 
@@ -40,7 +40,7 @@ class ItemTestCases(APITestCases):
                             data={'name':     ''},
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res0.status_code, 422)
 
@@ -51,7 +51,7 @@ class ItemTestCases(APITestCases):
                             data={'name':     'testItemEdit'},
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res1.status_code, 404)
 
@@ -62,7 +62,7 @@ class ItemTestCases(APITestCases):
                             data={'name':     'testItemEdit'},
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res2.status_code, 201)
 
@@ -76,7 +76,7 @@ class ItemTestCases(APITestCases):
                             },
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res3.status_code, 201)
 
@@ -86,10 +86,10 @@ class ItemTestCases(APITestCases):
         self.client.post('/shoppinglists/', data=LIST_DATA,
                     headers={
                         'Content':          'Application/x-www-form-urlencoded',
-                        'Authorization':    'Basic %s' % tkn
+                        'Authorization':    tkn
                     })
         res = self.client.get('/shoppinglists/1',
-                            headers={'Authorization':    'Basic %s' % tkn})
+                            headers={'Authorization':    tkn})
         self.assertEqual(res.status_code, 404)
 
     def test_successful_item_fetch(self):
@@ -98,7 +98,7 @@ class ItemTestCases(APITestCases):
         create_list_and_add_item(self.client, tkn)
         res0 = self.client.get('/shoppinglists/1',
                             headers={
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res0.status_code, 200)
 
@@ -107,7 +107,7 @@ class ItemTestCases(APITestCases):
         create_list_and_add_item(self.client, tkn)
         res1 = self.client.get('/shoppinglists/1?q=t',
                             headers={
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res1.status_code, 200)
 
@@ -116,12 +116,12 @@ class ItemTestCases(APITestCases):
         create_list_and_add_item(self.client, tkn)
         res2 = self.client.get('/shoppinglists/1?q=z',
                             headers={
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res2.status_code, 404)
         with app.test_client() as client:
             res0 = client.get('/shoppinglists/1')
-            self.assertEqual(res0.status_code, 302)
+            self.assertEqual(res0.status_code, 401)
 
     def test_adding_item_fails_given_form_errors(self):
         """Test API can add items to a given shoppinglist"""
@@ -129,12 +129,12 @@ class ItemTestCases(APITestCases):
         self.client.post('/shoppinglists/', data=LIST_DATA,
                     headers={
                         'Content':          'Application/x-www-form-urlencoded',
-                        'Authorization':    'Basic %s' % tkn
+                        'Authorization':    tkn
                     })
         res0 = self.client.post('/shoppinglists/1/items/', data={'name': ''},
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
         })
         self.assertEqual(res0.status_code, 422)
 
@@ -143,11 +143,11 @@ class ItemTestCases(APITestCases):
         self.client.post('/shoppinglists/', data=LIST_DATA,
                     headers={
                         'Content':          'Application/x-www-form-urlencoded',
-                        'Authorization':    'Basic %s' % tkn
+                        'Authorization':    tkn
                     })
         res1 = self.client.post('/shoppinglists/1/items/', data=ITEM_DATA,
                             headers={
                                 'Content':          'Application/x-www-form-urlencoded',
-                                'Authorization':    'Basic %s' % tkn
+                                'Authorization':    tkn
                             })
         self.assertEqual(res1.status_code, 201)

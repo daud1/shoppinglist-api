@@ -1,6 +1,7 @@
 """
 Authentication Routes and View-Functions
 """
+import jwt
 # from flasgger import swag_from
 from flask import abort, jsonify, request
 from flask_login import current_user, login_user, logout_user
@@ -44,13 +45,11 @@ def login():
         if usr:
             usr_temp = usr.serialize
             if bcrypt.check_password_hash(usr_temp['password'], str(request.form['password'])):
-                tkn = usr.generate_auth_token()
-                print(tkn)
+                login_user(usr)
+                tkn = usr.encode_auth_token()
                 usr.token = tkn
                 db.session.commit()
-                login_user(usr)
-                print(current_user.get_id())
-                response = jsonify({'MSG': 'Login Successful', 'token': tkn})
+                response = jsonify({'MSG': 'Login Successful', 'token': tkn.decode()})
                 response.status_code = 200
             else:
                 response = jsonify({'ERR': 'Incorrect Password'})
@@ -80,13 +79,12 @@ def logout():
 @app.route('/auth/forgot-password', methods=['POST'])
 def forgotten_password():
     """
-    Method to verify email and send password reset link for forgotten password
+    Method to verify email and send password reset link to email
     """
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=request.form['email']).first()
-        ser = Serializer(app.config['SECRET_KEY'])
-        token = ser.dumps({'email': user.email})
+        token = user.encode_auth_token()
         password_reset_url = \
             "http://localhost:5000/" \
             "auth/reset_password/" + str(token)
@@ -114,23 +112,21 @@ def reset(token=None):
     """
     Method to reset user password
     """
-    # Switch to jwt implementation
-    ser = Serializer(app.config['SECRET_KEY'])
     try:
-        data = ser.loads(token)
-    except SignatureExpired:
+        payload = jwt.decode(token, app.config.get('SECRET_KEY'))
+        print(payload)
+    except jwt.ExpiredSignatureError:
         response = jsonify({'ERR': "Link expired, please request another."})
         response.status_code = 401
-        return response
-    except BadSignature:
+        return response    
+    except jwt.InvalidTokenError:
         response = jsonify({'ERR': "Invalid token!..Mschw!"})
         response.status_code = 401
         return response
 
     form = ResetPasswordForm()
-    user_email = data['email']
     if form.validate_on_submit():
-        user = User.query.filter_by(email=user_email)
+        user = User.query.filter_by(id=payload['sub'])
         user.password = bcrypt.generate_password_hash(
             str(request.form['new_password']), app.config['BCRYPT_LOG_ROUNDS']).decode()
         db.session.commit()

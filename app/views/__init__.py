@@ -1,12 +1,12 @@
 from flask_mail import Message
-from app import mail, app
+from app import mail, app, login_mgr
 from flask import jsonify, request, abort
 from functools import wraps
 from app.models import User
 
 
 def send_mail(subject, sender, recipients, text_body):
-    """implementation of send_mail from FlaskMail for sending emails
+    """implementation of the send_mail method from FlaskMail for sending emails
     """
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
@@ -27,18 +27,22 @@ def get_http_exception_handler(app):
 app.handle_http_exception = get_http_exception_handler(app)
 
 def requires_auth(func):
-    '''Decorator to auth-protect routes
-    '''
+    """Decorator to auth-protect routes
+    """
     @wraps(func)
     def decorated(*args, **kwargs):
-        '''Generic docstring
-        '''
+        """__docstring__
+        """
         try:
-            auth = request.headers["authorization"]
+            auth = request.headers["Authorization"]
         except Exception as e:
             abort(401)
-        user = User.verify_auth_token(auth)
-        if user is None:
+        usr_id = User.decode_auth_token(auth)
+        if not isinstance(usr_id, int):
             abort(401)
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
     return decorated
+
+@login_mgr.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))

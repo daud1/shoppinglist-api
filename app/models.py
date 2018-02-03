@@ -1,4 +1,7 @@
-"""Database models for User, List and Item tables"""
+"""Database models for User, List and Item tables
+"""
+import datetime
+import jwt
 import math
 
 from flask_login import UserMixin, current_user
@@ -8,12 +11,13 @@ from sqlalchemy import func
 from app import app, bcrypt, db
 
 class User(db.Model, UserMixin):
-    """This class represents the user table"""
+    """This class represents the user table
+    """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
-    token = db.Column(db.String(255), nullable=True)
+    token = db.Column(db.String(), nullable=True)
     lists = db.relationship('ShoppingList', backref='user', lazy='dynamic')
 
     def __init__(self, email, password):
@@ -21,31 +25,44 @@ class User(db.Model, UserMixin):
         self.password = bcrypt.generate_password_hash(
             password, app.config['BCRYPT_LOG_ROUNDS']).decode()
 
-    def generate_auth_token(self, expiration=10800):
-        """method to generate an authorisation token for user on successful login"""
-        ser = Serializer(app.config['SECRET_KEY'])
-        return ser.dumps({'id': self.id})
-
     def __repr__(self):
         return '<Email %r>' % self.email
 
-    @staticmethod
-    def verify_auth_token(token):
-        """method to verify authorisation token"""
-        ser = Serializer(app.config['SECRET_KEY'])
-        try:
-            data = ser.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
-        user = User.query.get(data['id'])
-        return user
-
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
+        """Return object data in easily serializeable format
+        """
         return {'email': self.email, 'password': self.password}
+
+    def encode_auth_token(self):
+        """Encodes a jwt auth token
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow()\
+                        + datetime.timedelta(days=0, seconds=2700),
+                'iat': datetime.datetime.utcnow(),
+                'sub': self.id
+            }
+            return jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+
+    @staticmethod
+    def decode_auth_token(auth_token):
+        '''Decodes the auth token
+        '''
+        try:
+            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+            return payload['sub']
+        except jwt.ExpiredSignatureError:
+            return 'Signature expired. Please log in again.'
+        except jwt.InvalidTokenError:
+            return 'Invalid token. Please log in again.'
 
 
 class ShoppingList(db.Model):

@@ -42,10 +42,10 @@ def create_list_and_add_item(client, tkn):
     client.post('/shoppinglists/', data=LIST_DATA,
                 headers={
                     'Content':          'Application/x-www-form-urlencoded',
-                    'Authorization':    'Basic %s' % tkn
+                    'Authorization':    tkn
                 })
     client.post('/shoppinglists/1/items/', data=ITEM_DATA,
                 headers={
                     'Content':          'Application/x-www-form-urlencoded',
-                    'Authorization':    'Basic %s' % tkn
+                    'Authorization':    tkn
                 })
