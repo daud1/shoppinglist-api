@@ -47,7 +47,7 @@ def login():
             if bcrypt.check_password_hash(usr_temp['password'], str(request.form['password'])):
                 login_user(usr)
                 tkn = usr.encode_auth_token()
-                usr.token = tkn
+                usr.token = str(tkn)
                 db.session.commit()
                 response = jsonify({'MSG': 'Login Successful', 'token': tkn.decode()})
                 response.status_code = 200

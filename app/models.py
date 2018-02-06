@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
-    token = db.Column(db.String(), nullable=True)
+    token = db.Column(db.Text(), nullable=True)
     lists = db.relationship('ShoppingList', backref='user', lazy='dynamic')
 
     def __init__(self, email, password):
