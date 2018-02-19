@@ -20,6 +20,7 @@ class APITestCases(unittest.TestCase):
             db.session.remove()
             db.drop_all()
 
+
 def create_and_login_user(client):
     """
     Helper function to register and login user.
@@ -30,22 +31,28 @@ def create_and_login_user(client):
     res = json.loads(res.data)
     return res['token']
 
+
 def create_user(client):
     """Helper function to register a user
     """
     client.post('auth/register', data=REG_DATA)
 
+
 def create_list_and_add_item(client, tkn):
     """
     Helper function to create a list and add an item to it.
     """
-    client.post('/shoppinglists/', data=LIST_DATA,
-                headers={
-                    'Content':          'Application/x-www-form-urlencoded',
-                    'Authorization':    tkn
-                })
-    client.post('/shoppinglists/1/items/', data=ITEM_DATA,
-                headers={
-                    'Content':          'Application/x-www-form-urlencoded',
-                    'Authorization':    tkn
-                })
+    client.post(
+        '/shoppinglists/',
+        data=LIST_DATA,
+        headers={
+            'Content': 'Application/x-www-form-urlencoded',
+            'Authorization': tkn
+        })
+    client.post(
+        '/shoppinglists/1/items/',
+        data=ITEM_DATA,
+        headers={
+            'Content': 'Application/x-www-form-urlencoded',
+            'Authorization': tkn
+        })

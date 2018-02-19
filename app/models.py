@@ -1,14 +1,15 @@
 """Database models for User, List and Item tables
 """
 import datetime
-import jwt
 import math
 
+import jwt
 from flask_login import UserMixin, current_user
-from itsdangerous import Serializer, SignatureExpired, BadSignature
+from itsdangerous import BadSignature, Serializer, SignatureExpired
 from sqlalchemy import func
 
 from app import app, bcrypt, db
+
 
 class User(db.Model, UserMixin):
     """This class represents the user table
@@ -40,15 +41,12 @@ class User(db.Model, UserMixin):
         try:
             payload = {
                 'exp': datetime.datetime.utcnow()\
-                        + datetime.timedelta(days=0, seconds=2700),
+                        + datetime.timedelta(days=1, seconds=0),
                 'iat': datetime.datetime.utcnow(),
                 'sub': self.id
             }
             return jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY'),
-                algorithm='HS256'
-            )
+                payload, app.config.get('SECRET_KEY'), algorithm='HS256')
         except Exception as e:
             return e
 
@@ -82,31 +80,26 @@ class ShoppingList(db.Model):
     def serialize(self):
         """Return object data in easily serializeable format
         """
-        return {
-            'name': self.name,
-            'list_id': self.id,
-            'user_id': self.user_id
-        }
+        return {'name': self.name, 'list_id': self.id, 'user_id': self.user_id}
 
     @staticmethod
-    def search(que, page=1):
-        """This method implements search and pagination.
+    def search(que, id, page=1):
+        """This method searches for a list and returns paginated results.
         """
-        all_lists = ShoppingList.query.filter_by(user_id=current_user.id)
+        all_lists = ShoppingList.query.filter_by(user_id=id)
         count = all_lists.count()
-        limit = 10
+        limit = 7
 
         if que:
             all_lists = all_lists.filter(
-                func.lower(ShoppingList.name).like(
-                    "%" + que.lower().strip() + "%")
-            )
+                func.lower(
+                    ShoppingList.name).like("%" + que.lower().strip() + "%"))
             count = all_lists.count()
-
-        if isinstance(page, int):
-            return {'lists': all_lists.paginate(page, limit, False).items,
-                    'number_of_pages': math.ceil(count / limit)}
-        return {'lists': all_lists.all(), 'number_of_pages': math.ceil(count / limit)}
+            
+        return {
+            'lists': all_lists.paginate(page, limit).items,
+            'number_of_pages': math.ceil(count / limit)
+        }
 
 
 class Item(db.Model):
@@ -115,14 +108,14 @@ class Item(db.Model):
     __tablename__ = 'items'
     item_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32))
-    quantity = db.Column(db.Integer)
-    list_id = db.Column(db.Integer, db.ForeignKey(
-        'shopping_list.id', ondelete='CASCADE'), nullable=False)
+    list_id = db.Column(
+        db.Integer,
+        db.ForeignKey('shopping_list.id', ondelete='CASCADE'),
+        nullable=False)
 
-    def __init__(self, name, list_id, quantity=1):
+    def __init__(self, name, list_id):
         self.name = name
         self.list_id = list_id
-        self.quantity = quantity
 
     @property
     def serialize(self):
@@ -131,7 +124,6 @@ class Item(db.Model):
         return {
             'item_id': self.item_id,
             'name': self.name,
-            'quantity': self.quantity,
             'list_id': self.list_id
         }
 
@@ -141,14 +133,14 @@ class Item(db.Model):
         """
         all_items = Item.query.filter_by(list_id=id)
         count = all_items.count()
-        limit = 10
+        limit = 7
+
         if que:
             all_items = all_items.filter(
-                func.lower(Item.name).like(
-                    "%" + que.lower().strip() + "%")
-            )
+                func.lower(Item.name).like("%" + que.lower().strip() + "%"))
             count = all_items.count()
-        if isinstance(page, int):
-            return {'items': all_items.paginate(page, limit, False).items,
-                    'number_of_pages': math.ceil(count / limit)}
-        return {'items': all_items.all(), 'number_of_pages': math.ceil(count / limit)}
+
+        return {
+            'items': all_items.paginate(page, limit).items,
+            'number_of_pages': math.ceil(count / limit)
+        }

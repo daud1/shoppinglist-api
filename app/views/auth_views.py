@@ -21,19 +21,25 @@ def register():
     """This method registers a new User using the email and password"""
     form = SignUpForm()
     if form.validate_on_submit():
-        usr = User(str(request.form['email']), str(request.form['password']))
-        if usr:
-            db.session.add(usr)
-            db.session.commit()
-            response = jsonify({'MSG': 'User account successfully created.'})
-            response.status_code = 201
+        usr = User.query.filter_by(email=form.email.data).first()
+        if not usr:
+            usr = User(str(request.form['email']), str(request.form['password']))
+            if usr:
+                db.session.add(usr)
+                db.session.commit()
+                response = jsonify({'MSG': 'User account successfully created.'})
+                response.status_code = 201
+            else:
+                response = jsonify({'ERR': 'User account wasn\'t created.'})
+                response.status_code = 400
         else:
-            response = jsonify({'ERR': 'User wasn\'t created.'})
-            response.status_code = 400
+            response = jsonify({'ERR': 'User account already exists.'})
+            response.status_code = 409
     else:
         response = jsonify({'ERR': form.errors})
         response.status_code = 422
     return response
+
 
 # @swag_from('/swagger_docs/auth/login.yml')
 @app.route('/auth/login', methods=['POST'])
@@ -44,12 +50,16 @@ def login():
         usr = User.query.filter_by(email=str(request.form['email'])).first()
         if usr:
             usr_temp = usr.serialize
-            if bcrypt.check_password_hash(usr_temp['password'], str(request.form['password'])):
+            if bcrypt.check_password_hash(usr_temp['password'],
+                                          str(request.form['password'])):
                 login_user(usr)
                 tkn = usr.encode_auth_token()
                 usr.token = str(tkn)
                 db.session.commit()
-                response = jsonify({'MSG': 'Login Successful', 'token': tkn.decode()})
+                response = jsonify({
+                    'MSG': 'Login Successful',
+                    'token': tkn.decode()
+                })
                 response.status_code = 200
             else:
                 response = jsonify({'ERR': 'Incorrect Password'})
@@ -61,6 +71,7 @@ def login():
         response = jsonify({'ERR': form.errors})
         response.status_code = 422
     return response
+
 
 # @swag_from('/swagger_docs/auth/logout.yml')
 @app.route('/auth/logout', methods=['POST'])
@@ -74,6 +85,7 @@ def logout():
         response = jsonify({"success": "You have successfully logged out!"})
         response.status_code = 200
     return response
+
 
 # @swag_from('/swagger_docs/auth/forgot_password.yml')
 @app.route('/auth/forgot-password', methods=['POST'])
@@ -93,18 +105,16 @@ def forgotten_password():
             "password\n\n" + password_reset_url + "\n\n Please disregard " \
                                                   "the link if you did not request it" \
                                                   "and immediately contact the administrator."
-        send_mail('Password Reset Requested',
-                  "david.mwebaza@andela.com",
-                  [form.email.data],
-                  email_body
-                  )
-        
+        send_mail('Password Reset Requested', "david.mwebaza@andela.com",
+                  [form.email.data], email_body)
+
         response = jsonify({'MSG': 'Password Reset Email sucessfully sent!'})
         response.status_code = 200
     else:
         response = jsonify({'ERR': str(form.errors)})
         response.status_code = 422
     return response
+
 
 # @swag_from('/swagger_docs/auth/reset_password.yml')
 @app.route('/auth/reset_password/<token>', methods=['POST'])
@@ -118,7 +128,7 @@ def reset(token=None):
     except jwt.ExpiredSignatureError:
         response = jsonify({'ERR': "Link expired, please request another."})
         response.status_code = 401
-        return response    
+        return response
     except jwt.InvalidTokenError:
         response = jsonify({'ERR': "Invalid token!..Mschw!"})
         response.status_code = 401
@@ -128,7 +138,8 @@ def reset(token=None):
     if form.validate_on_submit():
         user = User.query.filter_by(id=payload['sub'])
         user.password = bcrypt.generate_password_hash(
-            str(request.form['new_password']), app.config['BCRYPT_LOG_ROUNDS']).decode()
+            str(request.form['new_password']),
+            app.config['BCRYPT_LOG_ROUNDS']).decode()
         db.session.commit()
         response = jsonify({'MSG': 'Successfully reset password!'})
         response.status_code = 200

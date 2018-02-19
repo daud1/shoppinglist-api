@@ -1,6 +1,8 @@
 """API configurations
 """
 import os
+
+
 class Config(object):
     """Base class for configurations
     """
@@ -14,8 +16,11 @@ class Config(object):
     MAIL_USERNAME = 'david.mwebaza@andela.com'
     MAIL_SERVER = 'smtp.gmail.com'
     SECRET_KEY = os.environ.get('SECRET') or 'not_really_secret'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or 'postgresql://postgres:1234@localhost:5432/db_five'
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URI') or 'postgresql://postgres:1234@localhost:5432/db_five'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
     # SWAGGER = {
     #     'swagger': '2.0',
     #     'specs_route': './app/views/swagger_docs/',
@@ -37,6 +42,6 @@ class Config(object):
 class TestingConfig(Config):
     """Configuration for Testing. Inherits from Config class.
     """
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DB_URI') or 'postgresql://postgres:1234@localhost:5432/test_db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'TEST_DB_URI') or 'postgresql://postgres:1234@localhost:5432/test_db'
     TESTING = True
-        

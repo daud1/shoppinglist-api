@@ -14,6 +14,7 @@ class AuthTestCases(APITestCases):
     """
     Test Cases for API Auth functionality
     """
+
     def test_user_can_register_successfully(self):
         """Test API can register a new user"""
         res0 = self.client.post('/auth/register', data=REG_DATA)
@@ -51,11 +52,12 @@ class AuthTestCases(APITestCases):
     def test_user_logout(self):
         """Test API can logout logged in user"""
         tkn = create_and_login_user(self.client)
-        res1 = self.client.post('/auth/logout',
-                            headers={
-                                'Content':          'application/x-www-form-urlencoded',
-                                'Authorization':    tkn
-                            })
+        res1 = self.client.post(
+            '/auth/logout',
+            headers={
+                'Content': 'application/x-www-form-urlencoded',
+                'Authorization': tkn
+            })
         self.assertEqual(res1.status_code, 200)
 
     def test_sending_resetlink_fails_given_form_errors(self):
@@ -63,20 +65,25 @@ class AuthTestCases(APITestCases):
         Test API can send password reset link to email for forgotten passwords
         """
         create_and_login_user(self.client)
-        res0 = self.client.post('/auth/forgot-password',
-                            data={'email': ''})
+        res0 = self.client.post('/auth/forgot-password', data={'email': ''})
         self.assertEqual(res0.status_code, 422)
-        res1 = self.client.post('/auth/forgot-password',
-                            data={'email': 'test23@domain.com'})
+        res1 = self.client.post(
+            '/auth/forgot-password', data={
+                'email': 'test23@domain.com'
+            })
         self.assertEqual(res1.status_code, 422)
-        res2 = self.client.post('/auth/forgot-password',
-                            data={'email': 'test@'})
+        res2 = self.client.post(
+            '/auth/forgot-password', data={
+                'email': 'test@'
+            })
         self.assertEqual(res2.status_code, 422)
 
     def test_password_resetlink_sent_successfully(self):
         create_and_login_user(self.client)
-        res3 = self.client.post('/auth/forgot-password',
-                            data={'email': USER_DATA['email']})
+        res3 = self.client.post(
+            '/auth/forgot-password', data={
+                'email': USER_DATA['email']
+            })
         self.assertEqual(res3.status_code, 200)
 
     def test_password_reset_fails_given_invalid_token(self):
@@ -95,10 +102,7 @@ class AuthTestCases(APITestCases):
                 'sub': 1
             }
             token = jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY'),
-                algorithm='HS256'
-            )
+                payload, app.config.get('SECRET_KEY'), algorithm='HS256')
         except Exception as e:
             return e
         password_reset_url = "/auth/reset_password/" + token.decode()
@@ -115,14 +119,15 @@ class AuthTestCases(APITestCases):
                 'sub': 1
             }
             token = jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY'),
-                algorithm='HS256'
-            )
+                payload, app.config.get('SECRET_KEY'), algorithm='HS256')
         except Exception as e:
             return e
         password_reset_url = "/auth/reset_password/" + token.decode()
-        res0 = self.client.post(password_reset_url, data={"new_password": 123, "confirm": 13})
+        res0 = self.client.post(
+            password_reset_url, data={
+                "new_password": 123,
+                "confirm": 13
+            })
         self.assertEqual(res0.status_code, 422)
 
     def test_successful_password_reset(self):
@@ -135,12 +140,13 @@ class AuthTestCases(APITestCases):
                 'sub': 1
             }
             token = jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY'),
-                algorithm='HS256'
-            )
+                payload, app.config.get('SECRET_KEY'), algorithm='HS256')
         except Exception as e:
             return e
         password_reset_url = "/auth/reset_password/" + token.decode()
-        res1 = self.client.post(password_reset_url, data={"new_password": 123, "confirm": 123})
+        res1 = self.client.post(
+            password_reset_url, data={
+                "new_password": 123,
+                "confirm": 123
+            })
         self.assertEqual(res1.status_code, 200)
