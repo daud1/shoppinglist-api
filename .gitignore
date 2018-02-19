@@ -1,8 +1,9 @@
-venv/
 *.pyc
-.vscode/
+sndbx.py
+test_sndbx.py
 .cache/
-__pycache__/
-.coverage
-.coveragerc
-
+.vscode/
+__pycache__
+venv/
+htmlcov/
+migrations/

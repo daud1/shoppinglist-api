@@ -1,0 +1,14 @@
+Call this route to delete an existing ShoppingList.
+---
+tags:
+  - List
+parameters:
+- name: id
+  in: path
+  type: Integer
+  description: ID for ShoppingList being deleted.
+responses:
+   204:
+    description: ShoppingList Successfully deleted.
+   404:
+    description: ShoppingList not found.

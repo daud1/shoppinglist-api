@@ -1,0 +1,25 @@
+Logs In a User
+Returns a token given valid username and password.
+---
+tags:
+  - Authentication
+parameters:
+  - name: email
+    in: body
+    type: string
+    required: true
+    description: User's email address used to identify them in the system.
+  - name: password
+    in: body
+    type: string
+    required: true
+    description: User's password to authorize log in when accessing the system
+responses:
+  400:
+    description: An error logging in; especially an invalidly filled form.
+  200:
+    description: User successfully logged in.
+  401:
+    description: User entered an incorrect password and are therefore forbidden from accessing the system.
+  404:
+    description: User does not exist in the system.

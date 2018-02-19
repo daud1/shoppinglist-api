@@ -1,0 +1,39 @@
+Call this to register as a new user for the ShoppingList API
+---
+tags:
+  - Authentication
+parameters:
+  - name: email
+    in: body
+    type: string
+    required: true
+    description: User's email address used to identify them in the system.
+  - name: password
+    in: body
+    type: string
+    required: true
+    description: User's password to authorize log in when accessing the system
+  - name: confirm
+    in: body
+    type: string
+    required: true
+    description: User's password to authorize log in when accessing the system 
+responses:
+  400:
+    description: An error signing up; such as using an existing email address or an invalidly filled form.
+  201:
+    description: User successfully created
+    schema:
+      id: awesome
+      properties:
+        language:
+          type: string
+          description: The language name
+          default: Lua
+        features:
+          type: array
+          description: The awesomeness list
+          items:
+            type: string
+          default: ["perfect", "simple", "lovely"]
+

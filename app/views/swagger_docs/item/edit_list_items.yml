@@ -1,0 +1,24 @@
+Call this route to edit the title of an existing ShoppingList Item.
+---
+tags:
+  - Item
+parameters:
+- name: item_name
+  in: body
+  type: string
+  description: New title of the ShoppingList Item.
+- name: id
+  in: path
+  type: Integer
+  description: ID for ShoppingList being edited.
+- name: item_id
+  in: path
+  type: Integer
+  description: ID for ShoppingList Item being edited.
+responses:
+   201:
+    description: ShoppingList Item title successfully edited.
+   404:
+    description: ShoppingList Item not found.
+   422:
+    description: ShoppingList Item was not edited; form errors.
