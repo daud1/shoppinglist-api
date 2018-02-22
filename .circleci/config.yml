@@ -53,7 +53,6 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python manage.py db init
             py.test --cov=. tests/ --cov-config .coveragerc
 
       - store_artifacts:
