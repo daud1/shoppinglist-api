@@ -43,5 +43,5 @@ class TestingConfig(Config):
     """Configuration for Testing. Inherits from Config class.
     """
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'TEST_DB_URI') or 'postgresql://postgres:1234@localhost:5432/test_db'
+        'TEST_DB_URI') or 'postgresql://postgres:1234@localhost:5432/circle_test'
     TESTING = True

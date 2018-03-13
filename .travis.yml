@@ -12,7 +12,7 @@ services:
   - postgresql
 
 before_script:
-  - psql -c 'create database test_db;' -U postgres
+  - psql -c 'create database circle_test;' -U postgres
 
 script:
   - py.test --cov=. tests/ --cov-config .coveragerc
