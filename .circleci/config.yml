@@ -58,8 +58,3 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-deployment:
-  prod:
-    branch: master
-    heroku:
-      appname: flask-list-api
