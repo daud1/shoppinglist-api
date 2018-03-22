@@ -1,7 +1,7 @@
 # week-two-API
 [![Build Status](https://travis-ci.org/daud1/week-two-API.png)](https://travis-ci.org/daud1/week-two-API)
-
 [![Coverage Status](https://coveralls.io/repos/github/daud1/week-two-API/badge.svg?branch=master)](https://coveralls.io/github/daud1/week-two-API?branch=master)
+[![CircleCI](https://circleci.com/gh/daud1/week-two-API/tree/master.svg?style=svg)](https://circleci.com/gh/daud1/week-two-API/tree/master)
 
 An API for the shopping list application
 
