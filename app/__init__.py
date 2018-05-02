@@ -2,7 +2,7 @@
 """
 
 from flask_api import FlaskAPI
-from config import Config
+from ..config import Config
 # from flasgger import Swagger
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -25,5 +25,5 @@ mail = Mail(app)
 migr = Migrate(app, db)
 mgr = Manager(app)
 
-from app import models
-from app.views import auth_views, list_views, item_views
+from ..app import models
+from ..app.views import auth_views, list_views, item_views

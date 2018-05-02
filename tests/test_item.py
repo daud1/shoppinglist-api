@@ -1,8 +1,8 @@
 """
 ShoppingList Item Unittests
 """
-from tests import ITEM_DATA, LIST_DATA, app
-from tests.base import (APITestCases, create_and_login_user,
+from ..tests import ITEM_DATA, LIST_DATA, app
+from ..tests.base import (APITestCases, create_and_login_user,
                         create_list_and_add_item)
 
 

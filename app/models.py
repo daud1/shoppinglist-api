@@ -8,7 +8,7 @@ from flask_login import UserMixin, current_user
 from itsdangerous import BadSignature, Serializer, SignatureExpired
 from sqlalchemy import func
 
-from app import app, bcrypt, db
+from ..app import app, bcrypt, db
 
 
 class User(db.Model, UserMixin):

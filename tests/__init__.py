@@ -2,9 +2,9 @@
 Initialisation for API Unittests
 """
 import unittest
-from config import TestingConfig
-from app import app, db
-from app.views import auth_views, item_views, list_views
+from ..config import TestingConfig
+from ..app import app, db
+from ..app.views import auth_views, item_views, list_views
 
 app.config.from_object(TestingConfig)
 

@@ -1,8 +1,8 @@
 """
 ShoppingList Unittests
 """
-from tests.base import APITestCases, create_and_login_user, create_list_and_add_item
-from tests import app, LIST_DATA
+from ..tests.base import APITestCases, create_and_login_user, create_list_and_add_item
+from ..tests import app, LIST_DATA
 
 
 class ListTestCases(APITestCases):

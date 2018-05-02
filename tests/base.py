@@ -1,8 +1,8 @@
 import json
 import unittest
 
-from app import app, db
-from tests import ITEM_DATA, LIST_DATA, REG_DATA, USER_DATA
+from ..app import app, db
+from ..tests import ITEM_DATA, LIST_DATA, REG_DATA, USER_DATA
 
 
 class APITestCases(unittest.TestCase):

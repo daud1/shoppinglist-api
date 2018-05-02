@@ -5,9 +5,9 @@ import datetime
 import jwt
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from tests import (F_REG_DATA, F_USER_DATA, FF_REG_DATA, FF_USER_DATA,
+from ..tests import (F_REG_DATA, F_USER_DATA, FF_REG_DATA, FF_USER_DATA,
                    FFF_USER_DATA, REG_DATA, USER_DATA, app)
-from tests.base import APITestCases, create_and_login_user, create_user
+from ..tests.base import APITestCases, create_and_login_user, create_user
 
 
 class AuthTestCases(APITestCases):
