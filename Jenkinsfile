@@ -9,8 +9,8 @@ pipeline {
             sh 'pwd'
             sh 'virtualenv --python=python3 venv'
             sh 'ls'
-            sh '. venv/bin/activate'
-            sh 'pip install -r requirements.txt'
+            sh 'source venv/bin/activate'
+            sh 'sudo pip install -r requirements.txt'
             }
             
         }
