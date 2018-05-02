@@ -6,7 +6,7 @@ pipeline {
             steps{
                 echo 'cloning ShoppingListAPI Repo'
             git 'https://github.com/daud1/ShoppingListAPI.git'
-            sh 'virtualenv venv'
+            sh 'virtualenv venv --python=python3'
             sh '. venv/bin/activate'
             sh 'pip install -r requirements.txt'
             }
