@@ -8,7 +8,7 @@ pipeline {
             git 'https://github.com/daud1/ShoppingListAPI.git'
             sh 'pwd'
             sh 'virtualenv --python=python3 venv'
-            sh 'pwd'
+            sh 'ls'
             sh '. venv/bin/activate'
             sh 'pip install -r requirements.txt'
             }
