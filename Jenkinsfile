@@ -10,7 +10,7 @@ pipeline {
             sh 'virtualenv --python=python3 venv'
             sh '''
                 . venv/bin/activate
-                sudo pip install -r requirements.txt
+                pip install -r requirements.txt
             '''
             }
             
