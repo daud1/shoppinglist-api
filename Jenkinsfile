@@ -19,7 +19,10 @@ pipeline {
         stage('test') {
             steps{
                 echo 'Running tests'
-            sh 'py.test --cov=. tests/ --cov-config .coveragerc'
+            sh '''
+                . venv/bin/activate
+                py.test --cov=. tests/ --cov-config .coveragerc
+            '''
             }
             
         }
