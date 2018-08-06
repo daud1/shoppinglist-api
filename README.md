@@ -1,7 +1,7 @@
-# week-two-API
-[![Build Status](https://travis-ci.org/daud1/week-two-API.png)](https://travis-ci.org/daud1/week-two-API)
-[![Coverage Status](https://coveralls.io/repos/github/daud1/week-two-API/badge.svg?branch=master)](https://coveralls.io/github/daud1/week-two-API?branch=master)
-[![CircleCI](https://circleci.com/gh/daud1/week-two-API/tree/master.svg?style=svg)](https://circleci.com/gh/daud1/week-two-API/tree/master)
+# ShoppingListAPI
+[![Build Status](https://travis-ci.org/daud1/week-two-API.png)](https://travis-ci.org/daud1/ShoppingListAPI)
+[![Coverage Status](https://coveralls.io/repos/github/daud1/ShoppingListAPI/badge.svg?branch=master)](https://coveralls.io/github/daud1/ShoppingListAPI?branch=master)
+[![CircleCI](https://circleci.com/gh/daud1/ShoppingListAPI/tree/master.svg?style=svg)](https://circleci.com/gh/daud1/ShoppingListAPI/tree/master)
 
 An API for the shopping list application
 
@@ -12,10 +12,6 @@ An API for the shopping list application
 - Users can log in.
 - Users can create, view, update and delete shopping lists. 
 - Users can add, update, view or delete items in a shopping list
-
-## API documentation
-
-Documentation for the API can be found at 
 
 ## Tools
 Tools used for development of this API are;
