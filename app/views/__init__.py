@@ -1,9 +1,9 @@
 import inspect
 from flask_mail import Message
-from ...app import mail, app, login_mgr
+from app import mail, app, login_mgr
 from flask import jsonify, request, abort
 from functools import wraps
-from ...app.models import User
+from app.models import User
 
 def send_mail(subject, sender, recipients, text_body):
     """implementation of the send_mail method from FlaskMail for sending emails

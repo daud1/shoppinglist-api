@@ -7,11 +7,11 @@ import math
 from flask import jsonify, request
 from flask_login import current_user, login_required
 
-from ...app import app
-from ...app.forms import NewListForm
-from ...app.models import Item, ShoppingList, db
+from app import app
+from app.forms import NewListForm
+from app.models import Item, ShoppingList, db
 
-from . import requires_auth
+from app.views import requires_auth
 
 
 # @swag_from('/swagger_docs/list/view_lists.yml')

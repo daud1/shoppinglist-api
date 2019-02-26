@@ -6,11 +6,11 @@ import math
 # from flasgger import swag_from
 from flask import jsonify, request
 
-from ...app import app
-from ...app.forms import NewItemForm
-from ...app.models import Item, db
+from app import app
+from app.forms import NewItemForm
+from app.models import Item, db
 
-from . import requires_auth
+from app.views import requires_auth
 
 
 # @swag_from('/swagger_docs/item/view_list_items.yml')

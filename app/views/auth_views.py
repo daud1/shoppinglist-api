@@ -8,12 +8,15 @@ from flask_login import current_user, login_user, logout_user
 from itsdangerous import BadSignature, Serializer, SignatureExpired
 from sqlalchemy import exc
 
-from ...app import app, bcrypt, db, mail
-from ...app.forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
+from app import app, bcrypt, db, mail
+from app.forms import (ForgotPasswordForm, LoginForm, ResetPasswordForm,
                        SignUpForm)
-from ...app.models import User
+from app.models import User
 
 from . import requires_auth, send_mail
+@app.route('/', methods=['GET'])
+def ping():
+    return "PONG"
 
 # @swag_from('/swagger_docs/auth/register.yml')
 @app.route('/auth/register', methods=['POST'])
