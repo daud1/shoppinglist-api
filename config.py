@@ -9,7 +9,7 @@ class Config(object):
     BCRYPT_LOG_ROUNDS = 12
     WTF_CSRF_ENABLED = False
     DEBUG = True
-    MAIL_PASSWORD = 'cr3{tW4ve'
+    MAIL_PASSWORD = ''
     MAIL_PORT = 587
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
